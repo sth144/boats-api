@@ -1,9 +1,32 @@
 {
     "compilerOptions": {
-        "baseUrl": "./src",
+        "module": "commonjs",
+        "target": "es5",
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "types": [
+            "node",
+            "core-js",
+        ],
+        "rootDir": "src",
+        "baseUrl": "src",
         "outDir": "dist",
-        "types": ["node"],
-        "typeRoots": ["@types/node"],
-        "lib": ["dom"]
-    }
+        "lib": [
+            "es6",
+            "dom"
+        ]
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
 }
