@@ -10,9 +10,7 @@ export class App {
     constructor() { 
         this.app = Express();
         this.app.enable('trust proxy');
-        this.datastore = new Datastore({
-            
-        });
+        this.datastore = new Datastore();
     }
 
     public async start(): Promise<any> {
