@@ -1,0 +1,19 @@
+{
+  "name": "boats-api",
+  "version": "1.0.0",
+  "description": "An API for scheduling boat docking among slips.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sth144/boats-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sth144/boats-api/issues"
+  },
+  "homepage": "https://github.com/sth144/boats-api#readme"
+}
