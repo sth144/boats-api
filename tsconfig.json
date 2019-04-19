@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "outDir": "dist",
+        "types": ["node"],
+        "typeRoots": ["@types/node"],
+        "lib": ["dom"]
+    }
+}
