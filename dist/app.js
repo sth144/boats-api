@@ -8,3 +8,4 @@ var BoatsApi = /** @class */ (function () {
     return BoatsApi;
 }());
 var app = new BoatsApi();
+app.start();
