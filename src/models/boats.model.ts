@@ -1,4 +1,8 @@
 import { NoSqlClient } from "@db/nosql.client";
+import { Model } from "@models/model";
+import { IError, ErrorTypes } from "@lib/error.interface";
+import { isError } from "util";
+import { Query } from "@google-cloud/datastore";
 
 export interface IBoat {
     /** id: string, */  // auto-generated
@@ -7,51 +11,114 @@ export interface IBoat {
     length: number      // length of boat
 }
 
+export interface IBoatResult {
+    // TODO: implement this interface
+    //      data, live link
+    name: string,
+    type: string,
+    length: number,
+    link: string
+}
+
 export const BOATS = "boats";
 
-// TODO: implement model base class?
+export class BoatsModel extends Model {
+    private static _instance: BoatsModel;
+    public static get Instance(): BoatsModel {
+        if (!this._instance) this._instance = new BoatsModel();
+        return this._instance;
+    }
 
-export class BoatsModel {
-    private nosqlClient: NoSqlClient;
+    protected nosqlClient: NoSqlClient;
+    private deleteCallback: Function;
 
-    constructor() { 
+    private constructor() { 
+        super();
         this.nosqlClient = NoSqlClient.Instance;
         console.log("BoatsModel initialized");
     }
 
-    public static isIBoat(entity: any): boolean {
-        if (!("name" in entity) || !("type" in entity) || !("length" in entity)) {
+    public async nameUnique(_testName: string): Promise<boolean> {
+        /** get all names */
+        let allBoats = await this.getAllBoats() as IBoatResult[];
+        if (!isError(allBoats)) {
+            /** check against each name */
+            for (let boat of allBoats) {
+                // TODO: make sure name accessor correct
+                if (_testName == boat.name) {
+                    return false;
+                }
+            }
+        }
+        /** name is unique */
+        return true;
+    }
+
+    /**
+     * determine if an object conforms to the IBoat interface
+     */
+    public confirmInterface(obj: any): boolean {
+        if (!("name" in obj) || !("type" in obj) || !("length" in obj)
+            || !(typeof obj.name == "string")
+            || !(typeof obj.type == "string")
+            || !(typeof obj.length == "number")) {
             return false;
         } else return true;
     }
 
-    public async getBoatIdByName(name: string) {
-        const query = this.nosqlClient.datastore.createQuery(BOATS)
-            .filter("name", "=", name);
-        return await this.nosqlClient.runModelQuery(query);
+    public async boatExistsById(_id: string): Promise<boolean> {
+        return this.getBoatById(_id).then((result) => {
+            if (!isError(result)) return true
+            return false;
+        });
     }
 
-    public async getBoatsById(boatIds: number[]) {
-        this.nosqlClient.datastoreGet(boatIds);
+    public registerDeleteCallback(_cb: Function): void {
+        this.deleteCallback = _cb;
     }
 
-    public async createBoat(newBoat: IBoat) {
-        return await this.nosqlClient.datastorePost(newBoat, BOATS);
+    public async retrieveIdFromBoat(boatData: IBoat): Promise<string> {
+        // TODO: test this
+        return this.nosqlClient.getIdFromData(boatData);
     }
 
-    public async deleteBoatById() {
-
+    public async getBoatByName(boatName: string): Promise<any> {
+        const query: Query = this.nosqlClient.datastore.createQuery(BOATS)
+            .filter("name", "=", boatName);
+        return await this.nosqlClient.runQueryForModel(query);
     }
 
-    public async editBoat() {
-
+    public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
+        // TODO: incorporate live link into returned value
+        return await this.nosqlClient.datastoreGetById(BOATS, boatId);
     }
 
-    public async setBoatStatus() {
-        // A boat should be able to arrive and be assigned a slip number specified 
-        // in the request (no automatically assigning boats to slips)
+    public async getAllBoats(): Promise<IBoatResult[] | IError> {
+        // TODO: incorporate live link into returned value
+        return await this.nosqlClient.datastoreGetCollection(BOATS);
+    }
 
-        // If the slip is occupied the server should return an Error 403 Forbidden message
-        // This will require knowing the slip, date of arrival and boat
+    public async createBoat(_name: string, _type: string, _length: number) {
+        const newBoat: IBoat = {
+            name: _name,
+            type: _type,
+            length: _length
+        }
+        return await this.nosqlClient.datastoreSave(BOATS, newBoat);
+    }
+
+    public async deleteBoat(boatId: string): Promise<any> {
+        return this.nosqlClient.datastoreDelete(BOATS, boatId)
+            .then(() => {
+                if (typeof this.deleteCallback === undefined) 
+                    this.deleteCallback(boatId);
+            })
+    }
+
+    public async editBoat(boatId: string, editBoat: Partial<IBoat>)
+        : Promise<any | IError> {
+        if (this.boatExistsById(boatId)) {
+            return this.nosqlClient.datastoreEdit(BOATS, boatId, editBoat);
+        } else return <IError>{ error_type: ErrorTypes.DOESNT_EXIST }
     }
 }

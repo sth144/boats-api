@@ -1,57 +1,93 @@
 import * as Express from "express";
 import { SlipsController } from "@controllers/slips.controller";
+import { isError, ErrorTypes } from "@lib/error.interface";
+import { RouterWrapper } from "@routes/router.wrapper";
+import { IRequest } from "@lib/request.interface";
 
-const controller = new SlipsController();
+export class SlipsRouterWrapper extends RouterWrapper {
+    /**
+     * singleton
+     */
+    private static _instance: SlipsRouterWrapper;
+    public static get Instance() {
+        if (!this._instance) this._instance = new SlipsRouterWrapper();
+        return this._instance;
+    }
 
-export const slipsRouter = Express.Router();
+    public slipsRouter: Express.Router;
+    private slipsController: SlipsController;
 
-slipsRouter.get("/", async (req, res) => {
-    console.log("get slips");
+    private constructor() {
+        super();
+        this.slipsRouter = Express.Router();
+        this.slipsController = new SlipsController();
+        this.setupRoutes();
+    }
 
-    let result = await controller.handleGet(req);
+    protected setupRoutes(): void {
+        this.slipsRouter.get("/(:slip_id)?", async (req: IRequest, res): Promise<void> => {
+            /** compute response */
+            this.slipsController.handleGet(req).then((result) => {
+                /** send response */ 
+                res.status(200).json(result);
+            });
+        });
 
-    /** compute response */
+        this.slipsRouter.post("/", async (req: IRequest, res): Promise<void> => {
+            /** compute response */
+            this.slipsController.handlePost(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res)
+                } else {
+                    let key = result;
+                    /** send response */ 
+                    res.status(200).send(`{ "id": ${key.id} }`);
+                }
+            })
+        });
 
-    /** send response */ 
-    res.status(200).end();
-});
+        this.slipsRouter.put("/:slip_id/boats/:boat_id", async (req: IRequest, res): Promise<void> => {
+            /** compute and send response */
+            this.slipsController.handlePut(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    res.status(200).end();
+                }
+            });
+        });
 
-slipsRouter.post("/", async (req, res) => {
-    console.log("post slips");
+        this.slipsRouter.patch("/:slip_id", async (req: IRequest, res): Promise<void> => {
+            /** compute and send response */
+            this.slipsController.handlePatch(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    res.status(200).end();
+                }
+            });
+        });
 
-    let result = await controller.handlePost(req);
+        this.slipsRouter.delete("/:slip_id", async (req: IRequest, res): Promise<void> => {
+            /** compute and send response */
+            this.slipsController.handleDelete(req).then(res.status(200).end());
+        });
 
-    /** compute response */
+        this.slipsRouter.delete("/:slip_id/boats/:boat_id", async (req, res) => {
+            /** undock boat from slip */
+            this.slipsController.handleDelete(req).then(() => {
+                // TODO: handle results here
+            })
+        })
+    }
 
-    /** send response */ 
-});
-
-slipsRouter.put("/", async (req, res) => {
-    console.log("put slips");
-
-    let result = await controller.handlePut(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
-
-slipsRouter.patch("/", async (req, res) => {
-    console.log("patch slips");
-
-    let result = await controller.handlePatch(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
-
-slipsRouter.delete("/", async (req, res) => {
-    console.log("delete slips");
-    
-    let result = await controller.handleDelete(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
+    protected async handleError(err, req: IRequest, res): Promise<void> {
+        // TODO: handle error in router
+        switch(err) {
+            case ErrorTypes.BAD_EDIT: {
+            
+            } break;
+            default: ;
+        }
+    }
+}

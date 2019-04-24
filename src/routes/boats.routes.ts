@@ -1,59 +1,75 @@
 import * as Express from "express";
 import { BoatsController } from "@controllers/boats.controller";
+import { isError, ErrorTypes, IError } from "@lib/error.interface";
+import { RouterWrapper } from "@routes/router.wrapper";
+import { IRequest } from "@lib/request.interface";
 
-const controller = new BoatsController();
+export class BoatsRouterWrapper extends RouterWrapper {
+    /**
+     * singleton
+     */
+    private static _instance: BoatsRouterWrapper;
+    public static get Instance() {
+        if (!this._instance) this._instance = new BoatsRouterWrapper();
+        return this._instance;
+    }
 
-export const boatsRouter = Express.Router();
+    public boatsRouter: Express.Router; 
+    private boatsController:BoatsController;
 
-boatsRouter.get("/", async (req, res) => {
-    console.log("get boats");
+    private constructor() {
+        super();
+        this.boatsRouter = Express.Router();
+        this.boatsController = new BoatsController();
+        this.setupRoutes;
+    }
 
-    let result = await controller.handleGet(req);
-
-    /** compute response */
-
-    /** send response */ 
-
-    res.status(200).end();
-});
-
-boatsRouter.post("/", async (req, res) => {
-    console.log("post boats");
-
-    let result = await controller.handlePost(req);
-    console.log("done handling post");
-    /** compute response */
-
-    /** send response */ 
-    res.status(200).end();
-});
-
-boatsRouter.put("/", async (req, res) => {
-    console.log("put boats");
-
-    let result = await controller.handlePut(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
-
-boatsRouter.patch("/", async (req, res) => {
-    console.log("patch boats");
-
-    let result = await controller.handlePatch(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
-
-boatsRouter.delete("/", async (req, res) => {
-    console.log("delete boats");
-
-    let result = await controller.handleDelete(req);
-
-    /** compute response */
-
-    /** send response */ 
-});
+    protected setupRoutes(): void {
+        this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
+            /** compute response */
+            this.boatsController.handleGet(req).then((result) => {
+                /** send response */ 
+                res.status(200).json(result);
+            });
+        });
+    
+        this.boatsRouter.post("/", async (req: IRequest, res): Promise<void> => {
+            /** compute response */
+            this.boatsController.handlePost(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    let key = result;
+                    /** send response */ 
+                    res.status(200).send(`{ "id": ${key.id} }`);
+                }
+            });
+        });
+    
+        this.boatsRouter.patch("/:boat_id", async (req: IRequest, res): Promise<void> => {
+            /** compute and send response */
+            this.boatsController.handlePatch(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result as IError, req, res)
+                } else {
+                    res.status(200).end();
+                }
+            });
+        });
+    
+        this.boatsRouter.delete("/:boat_id", async (req: IRequest, res): Promise<void> => {
+            /** compute and send response */
+            this.boatsController.handleDelete(req).then(res.status(200).end())
+        });
+    }    
+    
+    protected async handleError(err: IError, req: IRequest, res): Promise<void> {
+        // TODO: handle error in router
+        switch(err.error_type) {
+            case ErrorTypes.BAD_EDIT: {
+            
+            } break;
+            default: ;
+        }
+    }
+}

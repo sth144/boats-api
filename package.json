@@ -24,6 +24,7 @@
   "_moduleAliases": {
     "@controllers": "dist/controllers",
     "@db": "dist/db",
+    "@lib": "dist/lib",
     "@models": "dist/models",
     "@routes": "dist/routes",
     "@base": "dist"

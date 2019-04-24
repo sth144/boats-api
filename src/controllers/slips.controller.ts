@@ -1,49 +1,95 @@
-import { SlipsModel } from "@models/slips.model";
+import { SlipsModel, ISlipResult } from "@models/slips.model";
+import { Controller } from "@controllers/controller";
+import { IError, ErrorTypes } from "@lib/error.interface";
+import { IRequest } from "@lib/request.interface";
 
 /**
  * validates and processes input for the model
  */
-export class SlipsController {
+export class SlipsController extends Controller {
     private slipsModel: SlipsModel;
 
     constructor() { 
-        this.slipsModel = new SlipsModel();
+        super();
+        this.slipsModel = SlipsModel.Instance;
     }
 
-    public async handleGet(request) {
-        // You should be able to either view a single entity or the entire collections of entities, 
-        // for example, I should be able to view the details of a single boat as well as get a list 
-        // of all boats
-        // When viewing a boat or slip, the response should include a live link (url) to view said 
-        // boat or slip. (Please review how Gist results have a url field that contains a complete url)
+    public async handleGet(request: IRequest): Promise<object | IError> {
+        // TODO: You should be able to either view a single entity or the entire collections of entities, 
+        //  for example, I should be able to view the details of a single boat as well as get a list 
+        //  of all boats
+        //  When viewing a boat or slip, the response should include a live link (url) to view said 
+        //  boat or slip. (Please review how Gist results have a url field that contains a complete url)
 
-        // If a slip is occupied, the response must include a live link (url) to the occupying boat
+        // TODO: If a slip is occupied, the response must include a live link (url) to the occupying boat
 
-        //const query = this.datastoreRef
-        //    .createQuery("slip")
+        let result = {};
+
+        if (!request.params.slip_id) {
+            result = await this.slipsModel.getAllSlips();
+        } else {
+            result = await this.slipsModel.getSlipById(request.params.slip_id);
+        }
+
+        return result;
     }
 
-    public async handlePost(request) {
-        // All newly created slips should be empty
-
-        //const query = this.datastoreRef.save({
-        //    key: this.datastoreRef.key("slip"),
-        //    data: <ISlip>{
-
-        //    }
-        //})
-        //return query
+    public async handlePost(request: IRequest): Promise<any | IError> {
+        if (!this.slipsModel.confirmInterface(request.body)) {
+            return <IError>{ error_type: ErrorTypes.INTERFACE };
+        } else if (!this.slipsModel.numberUnique(request.body.name)) {
+            return <IError>{ error_type: ErrorTypes.UNIQUE };
+        } else {
+            /** create boat and return */
+            return await this.slipsModel.createSlip(request.body.number);
+        } 
     }
 
-    public async handlePut(request) {
-        // When deleting a slip, any boat that was occupying said slip is now considered "at sea"
+    public async handlePut(request: IRequest): Promise<any | IError> {
+        // TODO: When deleting a slip, any boat that was occupying said slip is now considered "at sea"
+
+        /** validate request */
+        if (request.params.slip_id && request.params.boat_id) {
+            /** construct edit from request */
+            this.slipsModel.dockBoatAtSlip(
+                request.params.slip_id, request.params.boat_id);
+        } else return  <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }
 
-    public async handlePatch(request) {
-        // When deleting a slip, any boat that was occupying said slip is now considered "at sea"
+    public async handlePatch(request: IRequest): Promise<any | IError> {
+        // TODO: You should be able to modify any property except for the ID 
+
+        /** TODO: validate request */
+        if (request.params.slip_id) {
+            /** construct edit from request */
+            const edit = this.buildEditFromRequest(request);
+            return this.slipsModel.editSlip(request.params.slip_id, edit);
+        } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }   
     
-    public async handleDelete(request) {
-        // You should be able to modify any property except for the ID        
+    public async handleDelete(request: IRequest): Promise<any | IError> {
+        if (request.params.slip_id) {
+            if (request.params.boats && request.params.boat_id) {
+                return this.slipsModel.evacuateFromSlip(
+                    request.params.slip_id, request.params.boat_id);
+            } else {
+                /** parse id from request */
+                const _id = request.params.slip_id;
+
+                /** return confirmation to route handler */
+                return this.slipsModel.deleteSlip(_id);
+            }
+        } else return <IError> { error_type: ErrorTypes.NO_ID }
+    }
+
+    private buildEditFromRequest(_request: IRequest): object {
+        const _edit = {};
+        if (_request.body.number)
+            Object.assign(_edit, { number: _request.body.number });
+        if (_request.body.current_boat)
+            Object.assign(_edit, { current_boat: _request.body.current_boat })
+        if (_request.body.arrival_date)
+            Object.assign(_edit, { arrival_date: _request.body.arrival_date })
+        return _edit;
     }
 }
