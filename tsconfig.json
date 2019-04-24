@@ -17,6 +17,13 @@
         ],
         "rootDir": "src",
         "baseUrl": "src",
+        "paths": {
+            "@controllers/*": ["controllers/*"],
+            "@db/*": ["db/*"],
+            "@models/*": ["models/*"],
+            "@routes/*": ["routes/*"],
+            "@base/*": ["./*"]
+        },
         "outDir": "dist",
         "lib": [
             "es6",

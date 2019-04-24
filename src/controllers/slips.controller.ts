@@ -1,8 +1,16 @@
+import { SlipsModel } from "@models/slips.model";
+
+/**
+ * validates and processes input for the model
+ */
 export class SlipsController {
+    private slipsModel: SlipsModel;
 
-    constructor() { }
+    constructor() { 
+        this.slipsModel = new SlipsModel();
+    }
 
-    public getSlip() {
+    public async handleGet(request) {
         // You should be able to either view a single entity or the entire collections of entities, 
         // for example, I should be able to view the details of a single boat as well as get a list 
         // of all boats
@@ -15,7 +23,7 @@ export class SlipsController {
         //    .createQuery("slip")
     }
 
-    public createSlip(data) {
+    public async handlePost(request) {
         // All newly created slips should be empty
 
         //const query = this.datastoreRef.save({
@@ -27,11 +35,15 @@ export class SlipsController {
         //return query
     }
 
-    public deleteSlip() {
+    public async handlePut(request) {
         // When deleting a slip, any boat that was occupying said slip is now considered "at sea"
     }
 
-    public editSlip() {
-        // You should be able to modify any property except for the ID
+    public async handlePatch(request) {
+        // When deleting a slip, any boat that was occupying said slip is now considered "at sea"
+    }   
+    
+    public async handleDelete(request) {
+        // You should be able to modify any property except for the ID        
     }
 }

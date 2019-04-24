@@ -1,36 +1,59 @@
 import * as Express from "express";
-import { BoatsController } from "../controllers/boats.controller";
+import { BoatsController } from "@controllers/boats.controller";
 
 const controller = new BoatsController();
 
-boatsRouter.get("/", (req, res) => {
+export const boatsRouter = Express.Router();
+
+boatsRouter.get("/", async (req, res) => {
     console.log("get boats");
 
-    //
+    let result = await controller.handleGet(req);
+
+    /** compute response */
+
+    /** send response */ 
+
+    res.status(200).end();
 });
 
-boatsRouter.post("/", (req, res) => {
+boatsRouter.post("/", async (req, res) => {
     console.log("post boats");
 
-    //
+    let result = await controller.handlePost(req);
+    console.log("done handling post");
+    /** compute response */
+
+    /** send response */ 
+    res.status(200).end();
 });
 
-boatsRouter.put("/", (req, res) => {
+boatsRouter.put("/", async (req, res) => {
     console.log("put boats");
 
-    //
+    let result = await controller.handlePut(req);
+
+    /** compute response */
+
+    /** send response */ 
 });
 
-boatsRouter.patch("/", (req, res) => {
+boatsRouter.patch("/", async (req, res) => {
     console.log("patch boats");
 
-    //
+    let result = await controller.handlePatch(req);
+
+    /** compute response */
+
+    /** send response */ 
 });
 
-boatsRouter.delete("/", (req, res) => {
+boatsRouter.delete("/", async (req, res) => {
     console.log("delete boats");
 
-    //
-});
+    let result = await controller.handleDelete(req);
 
-export var boatsRouter = Express.Router();
+    /** compute response */
+
+    /** send response */ 
+});

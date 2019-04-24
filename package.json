@@ -21,10 +21,19 @@
     "url": "https://github.com/sth144/boats-api/issues"
   },
   "homepage": "https://github.com/sth144/boats-api#readme",
+  "_moduleAliases": {
+    "@controllers": "dist/controllers",
+    "@db": "dist/db",
+    "@models": "dist/models",
+    "@routes": "dist/routes",
+    "@base": "dist"
+  },
   "dependencies": {
     "@google-cloud/datastore": "^3.1.2",
     "@types/node": "^11.13.5",
+    "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "module-alias": "^2.2.0",
     "next": "^8.1.0"
   },
   "cloud-repo-tools": {
