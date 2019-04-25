@@ -6,8 +6,6 @@ import { SlipsModel } from "@models/slips.model";
 import { router } from "@routes/routes.main";
 import * as bodyParser from "body-parser";
 
-const Datastore = require("@google-cloud/datastore");
-
 export class App {
     private app: express.App;
     private nosqlClient: NoSqlClient;

@@ -21,20 +21,24 @@ export class NoSqlClient {
     }
 
     public async runQueryForModel(query: Query): Promise<any> {
-        return await this.datastore.runQuery(query);
+        let queryRun = await this.datastore.runQuery(query);
+        return queryRun;
     }
 
     public async datastoreGetCollection(_kind: string): Promise<any> {
         const query: Query = this.datastore.createQuery(_kind);
-        // TODO: confirm that [0] accessor is correct
-        return await this.datastore.runQuery(query)[0];
+        let queryResult: any[] = await this.datastore.runQuery(query)
+        queryResult = queryResult[0];
+        return queryResult;
     }   
 
     public async datastoreGetById(_kind: string, entityId: string)
         : Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(entityId, 10)]);
-        return await this.datastore.get(_key);
-        // TODO: need [0] accessor?
+        let [retrieved] = await this.datastore.get(_key).catch(() => {
+            // TODO: handle errors, figure out if I'm using correctly
+        });
+        return retrieved;
     }
 
     public async datastoreSave(_kind: string, entityData: any): Promise<any> {
@@ -43,8 +47,8 @@ export class NoSqlClient {
             key: _key,
             data: entityData
         }
-        this.datastore.save(item)
-            .then(() => { return _key })
+        await this.datastore.save(item);
+        return _key;
     }
 
     public async datastoreEdit(_kind: string, _id: string, _patch: object)
@@ -54,11 +58,14 @@ export class NoSqlClient {
             key: _key,
             data: _patch
         }
-        return this.datastore.save(entity);
+        let editSaved = await this.datastore.save(entity);
+        return editSaved;
     }
 
     public async datastoreDelete(_kind: string, _id: string): Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(_id, 10)]);
-        return await this.datastore.delete(_key);
+        console.log("deleting key " + JSON.stringify(_key));
+        let deleted = await this.datastore.delete(_key);
+        return deleted;
     }
 }

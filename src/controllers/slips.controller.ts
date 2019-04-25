@@ -22,38 +22,35 @@ export class SlipsController extends Controller {
         //  boat or slip. (Please review how Gist results have a url field that contains a complete url)
 
         // TODO: If a slip is occupied, the response must include a live link (url) to the occupying boat
-
         let result = {};
-
         if (!request.params.slip_id) {
             result = await this.slipsModel.getAllSlips();
         } else {
             result = await this.slipsModel.getSlipById(request.params.slip_id);
         }
-
         return result;
     }
 
     public async handlePost(request: IRequest): Promise<any | IError> {
         if (!this.slipsModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE };
-        } else if (!this.slipsModel.numberUnique(request.body.name)) {
-            return <IError>{ error_type: ErrorTypes.UNIQUE };
+        } else if (!(await this.slipsModel.numberUnique(request.body.number))) {
+            return <IError>{ error_type: ErrorTypes.NOT_UNIQUE };
         } else {
             /** create boat and return */
-            return await this.slipsModel.createSlip(request.body.number);
+            let newKey = await this.slipsModel.createSlip(request.body.number);
+            return newKey;
         } 
     }
 
     public async handlePut(request: IRequest): Promise<any | IError> {
-        // TODO: When deleting a slip, any boat that was occupying said slip is now considered "at sea"
-
         /** validate request */
         if (request.params.slip_id && request.params.boat_id) {
             /** construct edit from request */
-            this.slipsModel.dockBoatAtSlip(
+            let docked = await this.slipsModel.dockBoatAtSlip(
                 request.params.slip_id, request.params.boat_id);
-        } else return  <IError>{ error_type: ErrorTypes.BAD_EDIT }
+            return docked;
+        } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }
 
     public async handlePatch(request: IRequest): Promise<any | IError> {
@@ -63,21 +60,22 @@ export class SlipsController extends Controller {
         if (request.params.slip_id) {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);
-            return this.slipsModel.editSlip(request.params.slip_id, edit);
+            let edited = await this.slipsModel.editSlip(request.params.slip_id, edit);
+            return edited;
         } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }   
     
-    public async handleDelete(request: IRequest): Promise<any | IError> {
+    public async handleDelete(request: IRequest): Promise<object | IError> {
         if (request.params.slip_id) {
             if (request.params.boats && request.params.boat_id) {
-                return this.slipsModel.evacuateFromSlip(
+                let evacuated = await this.slipsModel.evacuateFromSlip(
                     request.params.slip_id, request.params.boat_id);
+                return evacuated;
             } else {
-                /** parse id from request */
-                const _id = request.params.slip_id;
-
                 /** return confirmation to route handler */
-                return this.slipsModel.deleteSlip(_id);
+                let deleteConfirmed = await this.slipsModel.deleteSlip(request.params.slip_id);
+                console.log("was deleted");
+                return deleteConfirmed;
             }
         } else return <IError> { error_type: ErrorTypes.NO_ID }
     }

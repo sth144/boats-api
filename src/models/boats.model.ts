@@ -13,11 +13,11 @@ export interface IBoat {
 
 export interface IBoatResult {
     // TODO: implement this interface
-    //      data, live link
+    //      data, live link, "self"
     name: string,
     type: string,
     length: number,
-    link: string
+    self: string
 }
 
 export const BOATS = "boats";
@@ -43,12 +43,9 @@ export class BoatsModel extends Model {
         let allBoats = await this.getAllBoats() as IBoatResult[];
         if (!isError(allBoats)) {
             /** check against each name */
-            for (let boat of allBoats) {
-                // TODO: make sure name accessor correct
-                if (_testName == boat.name) {
+            for (let boat of allBoats) 
+                if (_testName == boat.name) 
                     return false;
-                }
-            }
         }
         /** name is unique */
         return true;
@@ -67,10 +64,9 @@ export class BoatsModel extends Model {
     }
 
     public async boatExistsById(_id: string): Promise<boolean> {
-        return this.getBoatById(_id).then((result) => {
-            if (!isError(result)) return true
-            return false;
-        });
+        let result = await this.getBoatById(_id);
+        if (isError(result)) return false;
+        return true;
     }
 
     public registerDeleteCallback(_cb: Function): void {
@@ -79,23 +75,27 @@ export class BoatsModel extends Model {
 
     public async retrieveIdFromBoat(boatData: IBoat): Promise<string> {
         // TODO: test this
-        return this.nosqlClient.getIdFromData(boatData);
+        let id = await this.nosqlClient.getIdFromData(boatData);
+        return id;
     }
 
     public async getBoatByName(boatName: string): Promise<any> {
         const query: Query = this.nosqlClient.datastore.createQuery(BOATS)
             .filter("name", "=", boatName);
-        return await this.nosqlClient.runQueryForModel(query);
+        let boat = await this.nosqlClient.runQueryForModel(query);
+        return boat;
     }
 
     public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
-        // TODO: incorporate live link into returned value
-        return await this.nosqlClient.datastoreGetById(BOATS, boatId);
+        let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
+        if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+        return boat;
     }
 
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
         // TODO: incorporate live link into returned value
-        return await this.nosqlClient.datastoreGetCollection(BOATS);
+        let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
+        return allBoats;
     }
 
     public async createBoat(_name: string, _type: string, _length: number) {
@@ -104,7 +104,8 @@ export class BoatsModel extends Model {
             type: _type,
             length: _length
         }
-        return await this.nosqlClient.datastoreSave(BOATS, newBoat);
+        let newKey = await this.nosqlClient.datastoreSave(BOATS, newBoat);
+        return newKey;
     }
 
     public async deleteBoat(boatId: string): Promise<any> {
@@ -118,7 +119,8 @@ export class BoatsModel extends Model {
     public async editBoat(boatId: string, editBoat: Partial<IBoat>)
         : Promise<any | IError> {
         if (this.boatExistsById(boatId)) {
-            return this.nosqlClient.datastoreEdit(BOATS, boatId, editBoat);
-        } else return <IError>{ error_type: ErrorTypes.DOESNT_EXIST }
+            let edited = await this.nosqlClient.datastoreEdit(BOATS, boatId, editBoat);
+            return edited;
+        } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }
 }

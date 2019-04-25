@@ -21,15 +21,19 @@ export class BoatsRouterWrapper extends RouterWrapper {
         super();
         this.boatsRouter = Express.Router();
         this.boatsController = new BoatsController();
-        this.setupRoutes;
+        this.setupRoutes();
     }
 
     protected setupRoutes(): void {
         this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
             /** compute response */
             this.boatsController.handleGet(req).then((result) => {
-                /** send response */ 
-                res.status(200).json(result);
+                if (typeof result == "undefined" || isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    /** send response */ 
+                    res.status(200).json(result);
+                }
             });
         });
     
@@ -41,7 +45,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
                 } else {
                     let key = result;
                     /** send response */ 
-                    res.status(200).send(`{ "id": ${key.id} }`);
+                    res.status(201).send(`{ "id": ${key.id} }`);
                 }
             });
         });
@@ -59,7 +63,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
     
         this.boatsRouter.delete("/:boat_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.boatsController.handleDelete(req).then(res.status(200).end())
+            this.boatsController.handleDelete(req).then(res.status(204).end())
         });
     }    
     
@@ -68,6 +72,18 @@ export class BoatsRouterWrapper extends RouterWrapper {
         switch(err.error_type) {
             case ErrorTypes.BAD_EDIT: {
             
+            } break;
+            case ErrorTypes.NOT_FOUND: {
+                res.status(404).end();
+            } break;
+            case ErrorTypes.INTERFACE: {
+
+            } break;
+            case ErrorTypes.NO_ID: {
+
+            } break;
+            case ErrorTypes.NOT_UNIQUE: {
+                res.status(403).end();
             } break;
             default: ;
         }

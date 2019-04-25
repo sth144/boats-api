@@ -14,7 +14,7 @@ export class BoatsController extends Controller {
         this.boatsModel = BoatsModel.Instance;
     }
 
-    public async handleGet(request: IRequest): Promise<object> {
+    public async handleGet(request: IRequest): Promise<any | IError> {
         // TODO: You should be able to either view a single entity or the entire collections of entities, 
         //  for example, I should be able to view the details of a single boat as well as get a list 
         //  of all boats
@@ -22,15 +22,13 @@ export class BoatsController extends Controller {
         //  boat or slip. (Please review how Gist results have a url field that contains a complete url)
 
         let result = {};
-
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
             result = await this.boatsModel.getAllBoats();
         } else {
             /** handle case where one boat selected */
-            result = await this.boatsModel.getBoatById(request.query.id)
+            result = await this.boatsModel.getBoatById(request.params.boat_id)
         }
-
         return result;
     }
 
@@ -38,12 +36,13 @@ export class BoatsController extends Controller {
         /** enforce data model */
         if (!this.boatsModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE };
-        } else if (!this.boatsModel.nameUnique(request.body.name)) {
-            return <IError>{ error_type: ErrorTypes.UNIQUE }
+        } else if (!(await this.boatsModel.nameUnique(request.body.name))) {
+            return <IError>{ error_type: ErrorTypes.NOT_UNIQUE }
         } else {
             /** create and return boat */
-            return await this.boatsModel.createBoat(
+            let newKey = await this.boatsModel.createBoat(
                 request.body.name, request.body.type, request.body.length);
+            return newKey;
         }
     }
 
@@ -53,20 +52,22 @@ export class BoatsController extends Controller {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);
 
-            return this.boatsModel.editBoat(request.params.boat_id, edit);
-        } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
+            let editConfirmed = await this.boatsModel.editBoat(request.params.boat_id, edit);
+            return editConfirmed;
+        } else return <IError>{ error_type: ErrorTypes.NO_ID }
     }   
     
     public async handleDelete(request: IRequest): Promise<object | IError> {
-        /** parse id from request */
-        const _id = request.params.boat_id;
-
-
-        /** 
-         * return confirmation to route handler 
-         *  - BoatsModel handles notification of SlipsModel using callback
-         */
-        return await this.boatsModel.deleteBoat(_id);
+            /** confirm id in request */
+        if (request.params.boat_id) {
+            /** 
+             * return confirmation to route handler 
+             *  - BoatsModel handles notification of SlipsModel using callback
+             */
+            let deleteConfirmed 
+                = await this.boatsModel.deleteBoat(request.params.boat_id);
+            return deleteConfirmed;
+        } else return <IError>{ error_type: ErrorTypes.NO_ID }
     }
 
     private buildEditFromRequest(_request: IRequest): object {

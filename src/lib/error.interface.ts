@@ -4,13 +4,13 @@ export interface IError {
 
 export const ErrorTypes = {
     INTERFACE: "INTERFACE",
-    UNIQUE: "UNIQUE",
+    NOT_UNIQUE: "NOT_UNIQUE",
     BAD_EDIT: "BAD_EDIT",
     NO_ID: "NO_ID",
-    DOESNT_EXIST: "DOESNT_EXIST"
+    NOT_FOUND: "NOT_FOUND"
 }
 
-export const isError = (_testObj): boolean => {
+export const isError = (_testObj: object): boolean => {
     if ("error_type" in _testObj) return true;
     return false;
 }
