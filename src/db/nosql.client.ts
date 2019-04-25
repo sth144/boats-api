@@ -1,5 +1,6 @@
 import { Datastore, Query } from "@google-cloud/datastore";
 import { BOATS } from "@models/boats.model";
+import { IError, ErrorTypes } from "@lib/error.interface";
 
 export class NoSqlClient {
     private static _instance: NoSqlClient;
@@ -16,7 +17,6 @@ export class NoSqlClient {
     }
 
     public async getIdFromData(data: any): Promise<string> {
-        // TODO: test this
         return (data[Datastore.KEY].id).toString();
     }
 
@@ -36,7 +36,7 @@ export class NoSqlClient {
         : Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(entityId, 10)]);
         let [retrieved] = await this.datastore.get(_key).catch(() => {
-            // TODO: handle errors, figure out if I'm using correctly
+            return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         });
         return retrieved;
     }

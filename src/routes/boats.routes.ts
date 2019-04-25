@@ -63,7 +63,13 @@ export class BoatsRouterWrapper extends RouterWrapper {
     
         this.boatsRouter.delete("/:boat_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.boatsController.handleDelete(req).then(res.status(204).end())
+            this.boatsController.handleDelete(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result as IError, req, res);
+                } else {
+                    res.status(204).end();
+                }
+            });
         });
     }    
     

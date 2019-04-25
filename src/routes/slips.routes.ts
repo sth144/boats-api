@@ -70,15 +70,25 @@ export class SlipsRouterWrapper extends RouterWrapper {
 
         this.slipsRouter.delete("/:slip_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.slipsController.handleDelete(req).then(res.status(204).end());
+            this.slipsController.handleDelete(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    res.status(204).end();
+                }
+            });
         });
 
         this.slipsRouter.delete("/:slip_id/boats/:boat_id", async (req, res) => {
             /** undock boat from slip */
-            this.slipsController.handleDelete(req).then(() => {
-                // TODO: handle results here
-            })
-        })
+            this.slipsController.handleDelete(req).then((result) => {
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    res.status(204).end();
+                } 
+            });
+        });
     }
 
     protected async handleError(err, req: IRequest, res): Promise<void> {
@@ -88,7 +98,7 @@ export class SlipsRouterWrapper extends RouterWrapper {
             
             } break;
             case ErrorTypes.NOT_FOUND: {
-
+                res.status(404).send();
             } break;
             case ErrorTypes.INTERFACE: {
 

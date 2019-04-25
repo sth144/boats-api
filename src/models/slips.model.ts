@@ -18,8 +18,8 @@ export interface ISlipResult {
     number: number,
     current_boat: string,
     arrival_date: string,
-    link: string
-    boat_link: string
+    self:       string
+    boat_link:  string
 }
 
 export const SLIPS = "slips";
@@ -124,7 +124,6 @@ export class SlipsModel extends Model {
         // TODO: A boat should be able to arrive and be assigned a slip number specified 
         //  in the request (no automatically assigning boats to slips)
 
-        // TODO: make sure this is ok
         const date: string = (new Date).toString();
 
         // TODO: validate here
