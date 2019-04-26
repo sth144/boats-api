@@ -15,12 +15,6 @@ export class BoatsController extends Controller {
     }
 
     public async handleGet(request: IRequest): Promise<any | IError> {
-        // TODO: You should be able to either view a single entity or the entire collections of entities, 
-        //  for example, I should be able to view the details of a single boat as well as get a list 
-        //  of all boats
-        // TODO: When viewing a boat or slip, the response should include a live link (url) to view said 
-        //  boat or slip. (Please review how Gist results have a url field that contains a complete url)
-
         let result = {};
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
@@ -47,7 +41,6 @@ export class BoatsController extends Controller {
     }
 
     public async handlePatch(request: IRequest): Promise<object | IError> {
-        /** TODO: You should be able to modify any property except for the ID */
         if (request.params.boat_id) {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);

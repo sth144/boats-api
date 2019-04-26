@@ -73,26 +73,4 @@ export class BoatsRouterWrapper extends RouterWrapper {
             });
         });
     }    
-    
-    protected async handleError(err: IError, req: IRequest, res): Promise<void> {
-        // TODO: handle error in router
-        switch(err.error_type) {
-            case ErrorTypes.BAD_EDIT: {
-            
-            } break;
-            case ErrorTypes.NOT_FOUND: {
-                res.status(404).end();
-            } break;
-            case ErrorTypes.INTERFACE: {
-
-            } break;
-            case ErrorTypes.NO_ID: {
-
-            } break;
-            case ErrorTypes.NOT_UNIQUE: {
-                res.status(403).end();
-            } break;
-            default: ;
-        }
-    }
 }

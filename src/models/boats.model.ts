@@ -3,18 +3,18 @@ import { Model } from "@models/model";
 import { IError, ErrorTypes } from "@lib/error.interface";
 import { isError } from "util";
 import { Query } from "@google-cloud/datastore";
+import { API_URL } from "@routes/routes.main";
 
 export interface IBoatPrototype {
-    /** id: string, */  // auto-generated
+    id?: string,
     name: string,       // human-readable unique name
     type: string,       // type of boat
     length: number      // length of boat
+    self?: string
 }
 
 export interface IBoatResult {
-    // TODO: implement this interface
-    //      data, live link, "self"
-    // TODO: incorporate id into model
+    id: string,         // auto-generated
     name: string,
     type: string,
     length: number,
@@ -74,19 +74,6 @@ export class BoatsModel extends Model {
         this.deleteCallback = _cb;
     }
 
-    public async retrieveIdFromBoat(boatData: IBoatPrototype): Promise<string> {
-        // TODO: test this
-        let id = await this.nosqlClient.getIdFromData(boatData);
-        return id;
-    }
-
-    public async getBoatByName(boatName: string): Promise<any> {
-        const query: Query = this.nosqlClient.datastore.createQuery(BOATS)
-            .filter("name", "=", boatName);
-        let boat = await this.nosqlClient.runQueryForModel(query);
-        return boat;
-    }
-
     public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
@@ -94,7 +81,6 @@ export class BoatsModel extends Model {
     }
 
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
-        // TODO: incorporate live link into returned value
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
@@ -106,7 +92,24 @@ export class BoatsModel extends Model {
             type: _type,
             length: _length
         }
+
         let newKey = await this.nosqlClient.datastoreSave(BOATS, newBoat);
+
+        /** 
+         * id property copied from KEY
+         */
+        Object.assign(newBoat, { id: newKey.id });
+
+        /**
+         * create live link and update entity in datastore
+         */
+        Object.assign(newBoat, { self: `${API_URL}/${BOATS}/${newBoat.id}` });
+
+        /**
+         * update with live link and id
+         */
+        await this.nosqlClient.datastoreSave(BOATS, newBoat);
+
         return newKey;
     }
 

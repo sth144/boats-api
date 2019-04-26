@@ -94,26 +94,4 @@ export class SlipsRouterWrapper extends RouterWrapper {
             });
         });
     }
-
-    protected async handleError(err, req: IRequest, res): Promise<void> {
-        // TODO: handle error in router
-        switch(err.error_type) {
-            case ErrorTypes.BAD_EDIT: {
-            
-            } break;
-            case ErrorTypes.NOT_FOUND: {
-                res.status(404).send();
-            } break;
-            case ErrorTypes.INTERFACE: {
-
-            } break;
-            case ErrorTypes.NO_ID: {
-
-            } break;
-            case ErrorTypes.NOT_UNIQUE: {
-                res.status(403).end();
-            } break;
-            default: ;
-        }
-    }
 }
