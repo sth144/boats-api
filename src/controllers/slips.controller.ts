@@ -74,7 +74,6 @@ export class SlipsController extends Controller {
             } else {
                 /** return confirmation to route handler */
                 let deleteConfirmed = await this.slipsModel.deleteSlip(request.params.slip_id);
-                console.log("was deleted");
                 return deleteConfirmed;
             }
         } else return <IError> { error_type: ErrorTypes.NO_ID }

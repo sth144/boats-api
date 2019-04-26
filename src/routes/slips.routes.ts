@@ -28,8 +28,12 @@ export class SlipsRouterWrapper extends RouterWrapper {
         this.slipsRouter.get("/(:slip_id)?", async (req: IRequest, res): Promise<void> => {
             /** compute response */
             this.slipsController.handleGet(req).then((result) => {
-                /** send response */ 
-                res.status(200).json(result);
+                if (isError(result)) {
+                    this.handleError(result, req, res);
+                } else {
+                    /** send response */ 
+                    res.status(200).json(result);
+                }
             });
         });
 
@@ -37,7 +41,7 @@ export class SlipsRouterWrapper extends RouterWrapper {
             /** compute response */
             this.slipsController.handlePost(req).then((result) => {
                 if (isError(result)) {
-                    this.handleError(result, req, res)
+                    this.handleError(result, req, res);
                 } else {
                     let key = result;
                     /** send response */ 

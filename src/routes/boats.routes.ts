@@ -28,7 +28,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
         this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
             /** compute response */
             this.boatsController.handleGet(req).then((result) => {
-                if (typeof result == "undefined" || isError(result)) {
+                if (isError(result)) {
                     this.handleError(result, req, res);
                 } else {
                     /** send response */ 
@@ -51,6 +51,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
         });
     
         this.boatsRouter.patch("/:boat_id", async (req: IRequest, res): Promise<void> => {
+            console.log("patching");
             /** compute and send response */
             this.boatsController.handlePatch(req).then((result) => {
                 if (isError(result)) {

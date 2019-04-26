@@ -4,7 +4,7 @@ import { IError, ErrorTypes } from "@lib/error.interface";
 import { isError } from "util";
 import { Query } from "@google-cloud/datastore";
 
-export interface IBoat {
+export interface IBoatPrototype {
     /** id: string, */  // auto-generated
     name: string,       // human-readable unique name
     type: string,       // type of boat
@@ -14,6 +14,7 @@ export interface IBoat {
 export interface IBoatResult {
     // TODO: implement this interface
     //      data, live link, "self"
+    // TODO: incorporate id into model
     name: string,
     type: string,
     length: number,
@@ -73,7 +74,7 @@ export class BoatsModel extends Model {
         this.deleteCallback = _cb;
     }
 
-    public async retrieveIdFromBoat(boatData: IBoat): Promise<string> {
+    public async retrieveIdFromBoat(boatData: IBoatPrototype): Promise<string> {
         // TODO: test this
         let id = await this.nosqlClient.getIdFromData(boatData);
         return id;
@@ -95,11 +96,12 @@ export class BoatsModel extends Model {
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
         // TODO: incorporate live link into returned value
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
+        if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
     }
 
     public async createBoat(_name: string, _type: string, _length: number) {
-        const newBoat: IBoat = {
+        const newBoat: IBoatPrototype = {
             name: _name,
             type: _type,
             length: _length
@@ -116,7 +118,7 @@ export class BoatsModel extends Model {
             })
     }
 
-    public async editBoat(boatId: string, editBoat: Partial<IBoat>)
+    public async editBoat(boatId: string, editBoat: Partial<IBoatPrototype>)
         : Promise<any | IError> {
         if (this.boatExistsById(boatId)) {
             let edited = await this.nosqlClient.datastoreEdit(BOATS, boatId, editBoat);

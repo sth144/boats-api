@@ -11,6 +11,7 @@ export const ErrorTypes = {
 }
 
 export const isError = (_testObj: object): boolean => {
+    if (_testObj == undefined) return false;
     if ("error_type" in _testObj) return true;
     return false;
 }

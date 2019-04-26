@@ -1,4 +1,4 @@
-import { BoatsModel, IBoat } from "@models/boats.model";
+import { BoatsModel, IBoatPrototype } from "@models/boats.model";
 import { Controller } from "@controllers/controller";
 import { ErrorTypes, IError } from "@lib/error.interface";
 import { IRequest } from "@lib/request.interface";

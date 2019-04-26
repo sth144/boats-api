@@ -16,6 +16,7 @@ export class NoSqlClient {
         console.log("Datastore initialized");
     }
 
+    // TODO: is this necessary?
     public async getIdFromData(data: any): Promise<string> {
         return (data[Datastore.KEY].id).toString();
     }
@@ -53,10 +54,9 @@ export class NoSqlClient {
 
     public async datastoreEdit(_kind: string, _id: string, _patch: object)
         : Promise<any> {
-        const _key = this.datastore.key([_kind, parseInt(_id, 10)])
-        const entity = {
-            key: _key,
-            data: _patch
+        const entity = await this.datastoreGetById(_kind, _id);
+        for (let editField of Object.keys(_patch)) {
+            Object.assign(entity, { [editField]: _patch[editField] })
         }
         let editSaved = await this.datastore.save(entity);
         return editSaved;
@@ -64,7 +64,6 @@ export class NoSqlClient {
 
     public async datastoreDelete(_kind: string, _id: string): Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(_id, 10)]);
-        console.log("deleting key " + JSON.stringify(_key));
         let deleted = await this.datastore.delete(_key);
         return deleted;
     }
