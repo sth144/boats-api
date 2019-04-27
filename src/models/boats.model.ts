@@ -87,28 +87,29 @@ export class BoatsModel extends Model {
     }
 
     public async createBoat(_name: string, _type: string, _length: number) {
-        const newBoat: IBoatPrototype = {
+        const newData: IBoatPrototype = {
             name: _name,
             type: _type,
-            length: _length
+            length: _length,
         }
 
-        let newKey = await this.nosqlClient.datastoreSave(BOATS, newBoat);
-
-        /** 
-         * id property copied from KEY
-         */
-        Object.assign(newBoat, { id: newKey.id });
+        let newKey = await this.nosqlClient.datastoreSave(BOATS, newData);
 
         /**
          * create live link and update entity in datastore
          */
-        Object.assign(newBoat, { self: `${API_URL}/${BOATS}/${newBoat.id}` });
+        Object.assign(newData, { id: `${newKey.id}` });
+        Object.assign(newData, { self: `${API_URL}/${BOATS}/${newKey.id}` });
+
+        const newBoat = {
+            key: newKey,
+            data: newData
+        }
 
         /**
          * update with live link and id
          */
-        await this.nosqlClient.datastoreSave(BOATS, newBoat);
+        await this.nosqlClient.datastoreUpsert(newBoat);
 
         return newKey;
     }

@@ -51,7 +51,6 @@ export class BoatsRouterWrapper extends RouterWrapper {
         });
     
         this.boatsRouter.patch("/:boat_id", async (req: IRequest, res): Promise<void> => {
-            console.log("patching");
             /** compute and send response */
             this.boatsController.handlePatch(req).then((result) => {
                 if (isError(result)) {

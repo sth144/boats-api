@@ -47,7 +47,6 @@ export class SlipsController extends Controller {
     }
 
     public async handlePatch(request: IRequest): Promise<any | IError> {
-        /** TODO: validate request */
         if (request.params.slip_id) {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);
@@ -58,7 +57,7 @@ export class SlipsController extends Controller {
     
     public async handleDelete(request: IRequest): Promise<object | IError> {
         if (request.params.slip_id) {
-            if (request.params.boats && request.params.boat_id) {
+            if (request.params.boat_id) {
                 let evacuated = await this.slipsModel.evacuateFromSlip(
                     request.params.slip_id, request.params.boat_id);
                 return evacuated;

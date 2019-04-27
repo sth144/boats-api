@@ -4,8 +4,14 @@ import { SlipsRouterWrapper } from "@routes/slips.routes";
 import { IRequest } from "@lib/request.interface";
 import { ErrorTypes, IError } from "@lib/error.interface";
 
-// TODO: set API_URL dynamically
-export const API_URL = "http://localhost:8080"; //process.env.get();
+/**
+ * set API url dynamically
+ */
+let _URL = "http://localhost:8080";
+if (process.env.GOOGLE_CLOUD_PROJECT == "hindss-assign3") {
+    _URL = "https://hindss-assign3.appspot.com/"
+}
+export const API_URL = _URL;
 
 export const router: Express.Router = Express.Router();
 

@@ -1,6 +1,7 @@
 import { Datastore, Query } from "@google-cloud/datastore";
 import { BOATS } from "@models/boats.model";
 import { IError, ErrorTypes } from "@lib/error.interface";
+import { SLIPS } from "@models/slips.model";
 
 export class NoSqlClient {
     private static _instance: NoSqlClient;
@@ -51,20 +52,27 @@ export class NoSqlClient {
         return _key;
     }
 
+    public async datastoreUpsert(entityData: any): Promise<any> {
+        await this.datastore.upsert(entityData);
+    }
+
     public async datastoreEdit(_kind: string, _id: string, _patch: object)
         : Promise<any> {
         const entity = await this.datastoreGetById(_kind, _id);
         for (let editField of Object.keys(_patch)) {
-            if (entity.hasOwnProperty(editField) && editField !== "id") {
+            if (editField !== "id") {
                 Object.assign(entity, { [editField]: _patch[editField] })
             }
         }
-        let editSaved = await this.datastore.save(entity);
+        let editSaved = await this.datastore.upsert(entity);
         return editSaved;
     }
 
     public async datastoreDelete(_kind: string, _id: string): Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(_id, 10)]);
+        if (_key == undefined || _key.id == undefined) {
+            return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+        }
         let deleted = await this.datastore.delete(_key);
         return deleted;
     }

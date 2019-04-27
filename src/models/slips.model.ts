@@ -85,25 +85,29 @@ export class SlipsModel extends Model {
     }
 
     public async createSlip(_number: number): Promise<any> {
-        const newSlip: ISlipPrototype = {
+        const newData: ISlipPrototype = {
             number: _number,
             current_boat: null,
             arrival_date: null      
         }
 
-        let newKey = await this.nosqlClient.datastoreSave(SLIPS, newSlip);
+        let newKey = await this.nosqlClient.datastoreSave(SLIPS, newData);
+
+        /** 
+         * create live link and update entity in datastore
+         */
+        Object.assign(newData, { id: `${newKey.id}` });
+        Object.assign(newData, { self: `${API_URL}/${SLIPS}/${newKey.id}` })
+
+        const newSlip = {
+            key: newKey,
+            data: newData
+        }
 
         /**
-         * id property copied from KEY
+         * update with live link and id
          */
-        Object.assign(newSlip, { id: newSlip.id });
-
-        /**
-         * create live link to self 
-         */
-        Object.assign(newSlip, { self: `${API_URL}/${SLIPS}/${newKey.id}` });
-
-        await this.nosqlClient.datastoreSave(SLIPS, newSlip);
+        await this.nosqlClient.datastoreUpsert(newSlip);
 
         return newKey;
     }
@@ -124,17 +128,37 @@ export class SlipsModel extends Model {
         : Promise<any | IError> {
         const date: string = (new Date).toString();
 
-        // TODO: If the slip is occupied the server should return an Error 403 Forbidden message
-        //  This will require knowing the slip, date of arrival and boat
-        //  - slip is not occupied
-        //  - handle case where boat is docked somewhere else
-
-        let docked = await this.editSlip(slipId, {
-            current_boat: boatId,
-            arrival_date: date,
-            boat_link: `${API_URL}/${BOATS}/${boatId}`
-        });        
-        return docked;
+        /**
+         * check if boat is docked somewhere else
+         * check if slip is occupied
+         */
+        let allSlips = await this.getAllSlips();
+        if (!isError(allSlips)) {
+            let slipExists = false, boatDockedElsewhere = false, slipOccupied = false;
+            let dockedAtSlip = null;
+            for (let _slip of (allSlips as ISlipResult[])) {
+                if (_slip.id == slipId) {
+                    slipExists = true;
+                    if (_slip.current_boat != null && _slip.current_boat != boatId) {
+                        return <IError>{ error_type: ErrorTypes.FORBIDDEN }
+                    }
+                } else if (_slip.current_boat == boatId) {
+                    boatDockedElsewhere = true;
+                    dockedAtSlip = _slip.id;
+                }
+            }
+            if (!slipExists) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+            if (boatDockedElsewhere) {
+                await this.evacuateSlip(dockedAtSlip);
+            }
+            let docked = await this.editSlip(slipId, {
+                current_boat: boatId,
+                arrival_date: date,
+                boat_link: `${API_URL}/${BOATS}/${boatId}`
+            });        
+            
+            return docked;
+        } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }
 
     public async evacuateFromSlip(slipId: string, boatId: string)
@@ -142,7 +166,7 @@ export class SlipsModel extends Model {
         let slip = await this.getSlipById(slipId) as ISlipResult;
         if (!isError(slip)) {
             let boat = await this.boatsModelRef.getBoatById(boatId) as IBoatResult;
-            if (!isError(boat) && (slip.current_boat == boat.name)) {
+            if (!isError(boat) && (slip.current_boat == boat.id)) {
                 let evacuated = await this.evacuateSlip(slipId);
                 return evacuated;
             }
