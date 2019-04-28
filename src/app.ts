@@ -3,9 +3,12 @@ import * as crypto from "crypto";
 import { NoSqlClient } from "@db/nosql.client";
 import { BoatsModel } from "@models/boats.model";
 import { SlipsModel } from "@models/slips.model";
-import { router } from "@routes/routes.main";
+import { router, API_URL } from "@routes/routes.main";
 import * as bodyParser from "body-parser";
 
+/**
+ * main API class
+ */
 export class App {
     private app: express.App;
     private nosqlClient: NoSqlClient;

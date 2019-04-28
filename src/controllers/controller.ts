@@ -1,3 +1,6 @@
+/**
+ * base controller class
+ */
 export abstract class Controller {
     constructor() { }
 

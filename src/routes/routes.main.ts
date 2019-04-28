@@ -8,19 +8,28 @@ import { ErrorTypes, IError } from "@lib/error.interface";
  * set API url dynamically
  */
 let _URL = "http://localhost:8080";
-if (process.env.GOOGLE_CLOUD_PROJECT == "hindss-assign3") {
-    _URL = "https://hindss-assign3.appspot.com/"
+if (process.env.GOOGLE_CLOUD_PROJECT == "hindss-boats") {
+    _URL = "https://hindss-boats.appspot.com"
 }
 export const API_URL = _URL;
 
+/** instantiate the router */
 export const router: Express.Router = Express.Router();
 
+/** attach error callbacks to subrouters */
 BoatsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 
+/** hook up the routers */
 router.use("/boats", BoatsRouterWrapper.Instance.boatsRouter);
 router.use("/slips", SlipsRouterWrapper.Instance.slipsRouter);
 
+/**
+ * generic error handler
+ * @param err error object (conforms to IError interface)
+ * @param req the request object
+ * @param res response object reference
+ */
 async function _errorHandler(err: IError, req: IRequest, res): Promise<void> {
     switch(err.error_type) {
         case ErrorTypes.BAD_EDIT: {

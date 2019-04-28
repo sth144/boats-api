@@ -1,9 +1,14 @@
 import { Datastore, Query } from "@google-cloud/datastore";
-import { BOATS } from "@models/boats.model";
 import { IError, ErrorTypes } from "@lib/error.interface";
-import { SLIPS } from "@models/slips.model";
 
+/**
+ * mediates communication with the google cloud noSQL datastore 
+ *  for persistent storate
+ */
 export class NoSqlClient {
+    /**
+     * singleton instance
+     */
     private static _instance: NoSqlClient;
     public static get Instance() {
         if (!this._instance) this._instance = new NoSqlClient();
@@ -17,15 +22,18 @@ export class NoSqlClient {
         console.log("Datastore initialized");
     }
 
+    /** retrieve id from a data object */
     public async getIdFromData(data: any): Promise<string> {
         return (data[Datastore.KEY].id).toString();
     }
 
+    /** called by models to run specific queries */
     public async runQueryForModel(query: Query): Promise<any> {
         let queryRun = await this.datastore.runQuery(query);
         return queryRun;
     }
 
+    /** get an entire collection (every instance of a resource) */
     public async datastoreGetCollection(_kind: string): Promise<any> {
         const query: Query = this.datastore.createQuery(_kind);
         let queryResult: any[] = await this.datastore.runQuery(query)
@@ -33,6 +41,7 @@ export class NoSqlClient {
         return queryResult;
     }   
 
+    /** get a single instance of a resource by it's unique id */
     public async datastoreGetById(_kind: string, entityId: string)
         : Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(entityId, 10)]);
@@ -42,6 +51,7 @@ export class NoSqlClient {
         return retrieved;
     }
 
+    /** save an item to the datastore */
     public async datastoreSave(_kind: string, entityData: any): Promise<any> {
         const _key = this.datastore.key(_kind);
         const item = {
@@ -52,10 +62,12 @@ export class NoSqlClient {
         return _key;
     }
 
+    /** upsert an item into the datastore */
     public async datastoreUpsert(entityData: any): Promise<any> {
         await this.datastore.upsert(entityData);
     }
 
+    /** edit an item in the datastore */
     public async datastoreEdit(_kind: string, _id: string, _patch: object)
         : Promise<any> {
         const entity = await this.datastoreGetById(_kind, _id);
@@ -68,6 +80,7 @@ export class NoSqlClient {
         return editSaved;
     }
 
+    /** delete an item from the datastore */
     public async datastoreDelete(_kind: string, _id: string): Promise<any> {
         const _key = this.datastore.key([_kind, parseInt(_id, 10)]);
         if (_key == undefined || _key.id == undefined) {

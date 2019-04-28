@@ -1,3 +1,7 @@
+/**
+ * error type definitions
+ */
+
 export interface IError {
     error_type: string
 }
@@ -11,6 +15,10 @@ export const ErrorTypes = {
     FORBIDDEN: "FORBIDDEN"
 }
 
+/**
+ * helper function to determine if an object conforms to IError interface
+ * @param _testObj the object in question
+ */
 export const isError = (_testObj: object): boolean => {
     if (_testObj == undefined) return false;
     if ("error_type" in _testObj) return true;

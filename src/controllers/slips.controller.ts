@@ -11,9 +11,12 @@ export class SlipsController extends Controller {
 
     constructor() { 
         super();
+
+        /** grab handle to slips model singleton */
         this.slipsModel = SlipsModel.Instance;
     }
 
+    /** called by router when a get request received for slips resource */
     public async handleGet(request: IRequest): Promise<object | IError> {
         let result = {};
         if (!request.params.slip_id) {
@@ -24,6 +27,7 @@ export class SlipsController extends Controller {
         return result;
     }
 
+    /** called by router when a post request received for slips resource */
     public async handlePost(request: IRequest): Promise<any | IError> {
         if (!this.slipsModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE };
@@ -36,6 +40,7 @@ export class SlipsController extends Controller {
         } 
     }
 
+    /** called by router when a put request received for slips resource */
     public async handlePut(request: IRequest): Promise<any | IError> {
         /** validate request */
         if (request.params.slip_id && request.params.boat_id) {
@@ -46,6 +51,7 @@ export class SlipsController extends Controller {
         } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }
 
+    /** called by router when a patch request received for slips resource */
     public async handlePatch(request: IRequest): Promise<any | IError> {
         if (request.params.slip_id) {
             /** construct edit from request */
@@ -55,6 +61,7 @@ export class SlipsController extends Controller {
         } else return <IError>{ error_type: ErrorTypes.BAD_EDIT }
     }   
     
+    /** called by router when a delete request received for slips resource */
     public async handleDelete(request: IRequest): Promise<object | IError> {
         if (request.params.slip_id) {
             if (request.params.boat_id) {
@@ -69,6 +76,7 @@ export class SlipsController extends Controller {
         } else return <IError> { error_type: ErrorTypes.NO_ID }
     }
 
+    /** build edit object (used for patching) */
     private buildEditFromRequest(_request: IRequest): object {
         const _edit = {};
         if (_request.body.number)

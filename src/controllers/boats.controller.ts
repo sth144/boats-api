@@ -11,9 +11,12 @@ export class BoatsController extends Controller {
 
     constructor() { 
         super();
+
+        /** grab handle to boat model singleton */
         this.boatsModel = BoatsModel.Instance;
     }
 
+    /** called by router when a get request is received for boats resource */
     public async handleGet(request: IRequest): Promise<any | IError> {
         let result = {};
         if (!request.params.boat_id) {
@@ -26,6 +29,7 @@ export class BoatsController extends Controller {
         return result;
     }
 
+    /** called by router when a post request received for boats resource */
     public async handlePost(request: IRequest): Promise<any | IError> {
         /** enforce data model */
         if (!this.boatsModel.confirmInterface(request.body)) {
@@ -40,6 +44,7 @@ export class BoatsController extends Controller {
         }
     }
 
+    /** called by router when a patch request received for boats resource */
     public async handlePatch(request: IRequest): Promise<object | IError> {
         if (request.params.boat_id) {
             /** construct edit from request */
@@ -50,6 +55,7 @@ export class BoatsController extends Controller {
         } else return <IError>{ error_type: ErrorTypes.NO_ID }
     }   
     
+    /** called by router when delete request received for boats resource */
     public async handleDelete(request: IRequest): Promise<object | IError> {
             /** confirm id in request */
         if (request.params.boat_id) {
@@ -63,6 +69,7 @@ export class BoatsController extends Controller {
         } else return <IError>{ error_type: ErrorTypes.NO_ID }
     }
 
+    /** construct an edit object to pass to model (used for patching) */
     private buildEditFromRequest(_request: IRequest): object {
         const _edit = {};
         if (_request.body.name)

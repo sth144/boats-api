@@ -5,16 +5,28 @@ import { isError } from "util";
 import { Query } from "@google-cloud/datastore";
 import { API_URL } from "@routes/routes.main";
 
+/**
+ * interface used for constructing and inserting boat objects into the datastore
+ *  (validates post requests)
+ * @property id     unique identifier. Not supplied by client
+ * @property name   boat name (must be unique)   
+ * @property type   boat type 
+ * @property length boat length
+ * @property self   a live link to the boat object
+ */
 export interface IBoatPrototype {
     id?: string,
-    name: string,       // human-readable unique name
-    type: string,       // type of boat
-    length: number      // length of boat
+    name: string,       
+    type: string,       
+    length: number     
     self?: string
 }
 
+/**
+ * interface used to validate boat objects retrieved from the datastore
+ */
 export interface IBoatResult {
-    id: string,         // auto-generated
+    id: string,        
     name: string,
     type: string,
     length: number,
@@ -23,7 +35,14 @@ export interface IBoatResult {
 
 export const BOATS = "boats";
 
+/**
+ * manages construction, editing, and deletion of boat objects in 
+ *  the google-cloud datastore
+ */
 export class BoatsModel extends Model {
+    /**
+     * singleton
+     */
     private static _instance: BoatsModel;
     public static get Instance(): BoatsModel {
         if (!this._instance) this._instance = new BoatsModel();
@@ -39,6 +58,7 @@ export class BoatsModel extends Model {
         console.log("BoatsModel initialized");
     }
 
+    /** check that name supplied in request is unique */
     public async nameUnique(_testName: string): Promise<boolean> {
         /** get all names */
         let allBoats = await this.getAllBoats() as IBoatResult[];
@@ -64,28 +84,43 @@ export class BoatsModel extends Model {
         } else return true;
     }
 
+    /** 
+     * confirm that boat with id exists 
+     */
     public async boatExistsById(_id: string): Promise<boolean> {
         let result = await this.getBoatById(_id);
         if (isError(result)) return false;
         return true;
     }
 
+    /**
+     * register a callback to be called when a boat is deleted
+     */
     public registerDeleteCallback(_cb: Function): void {
         this.deleteCallback = _cb;
     }
 
+    /**
+     * retrieve a boat object by its datastore id
+     */
     public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return boat;
     }
 
+    /**
+     * retrieve entire collection (all boats)
+     */
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
     }
 
+    /**
+     * create a new boat object in the datastore
+     */
     public async createBoat(_name: string, _type: string, _length: number) {
         const newData: IBoatPrototype = {
             name: _name,
@@ -114,6 +149,9 @@ export class BoatsModel extends Model {
         return newKey;
     }
 
+    /**
+     * delete a boat from datastore
+     */
     public async deleteBoat(boatId: string): Promise<any> {
         return this.nosqlClient.datastoreDelete(BOATS, boatId)
             .then(() => {
@@ -122,6 +160,9 @@ export class BoatsModel extends Model {
             })
     }
 
+    /**
+     * edit existing boat
+     */
     public async editBoat(boatId: string, editBoat: Partial<IBoatPrototype>)
         : Promise<any | IError> {
         if (this.boatExistsById(boatId)) {
