@@ -6,6 +6,7 @@ import { IRequest } from "@lib/request.interface";
 /**
  * validates and processes input for the model
  */
+// TODO: implement pagination
 export class BoatsController extends Controller {
     private boatsModel: BoatsModel;
 

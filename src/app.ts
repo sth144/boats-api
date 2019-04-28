@@ -7,7 +7,7 @@ import { router, API_URL } from "@routes/routes.main";
 import * as bodyParser from "body-parser";
 
 /**
- * main API class
+ * main API instance class
  */
 export class App {
     private app: express.App;

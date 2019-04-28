@@ -10,18 +10,16 @@ import { API_URL } from "@routes/routes.main";
  *  datastore
  * @property id             unique datastore identifier (not supplied by client)
  * @property number         human readable unique identifier
- * @property current_boat   id of current boat, null if empty
+ * @property current_boat   boat reference for current boat, id null if empty, contains self link
  * @property arrival_date   date that current boat arrived (timestamp)
  * @property self           live link to self
- * @property boat_link      live link to occupying boat
  */
 export interface ISlipPrototype {
     id?: string,            
     number: number,             
-    current_boat?: string, 
+    current_boat?: IBoatRef, 
     arrival_date?: string,  
-    self?: string,         
-    boat_link?: string      
+    self?: string,          
 }
 
 /**
@@ -30,10 +28,15 @@ export interface ISlipPrototype {
 export interface ISlipResult {
     id: string,
     number: number,
-    current_boat: string,
     arrival_date: string,
     self: string
-    boat_link: string
+    current_boat: IBoatRef
+}
+
+export interface IBoatRef {
+    id: string,
+    self: string,
+    name?: string
 }
 
 export const SLIPS = "slips";
@@ -174,6 +177,8 @@ export class SlipsModel extends Model {
         : Promise<any | IError> {
         const date: string = (new Date).toString();
 
+        // TODO: update tests to account for change to data boat reference model
+
         /**
          * check if boat is docked somewhere else
          * check if slip is occupied
@@ -185,10 +190,10 @@ export class SlipsModel extends Model {
             for (let _slip of (allSlips as ISlipResult[])) {
                 if (_slip.id == slipId) {
                     slipExists = true;
-                    if (_slip.current_boat != null && _slip.current_boat != boatId) {
+                    if (_slip.current_boat != null && _slip.current_boat.id != boatId) {
                         return <IError>{ error_type: ErrorTypes.FORBIDDEN }
                     }
-                } else if (_slip.current_boat == boatId) {
+                } else if (_slip.current_boat.id == boatId) {
                     boatDockedElsewhere = true;
                     dockedAtSlip = _slip.id;
                 }
@@ -198,9 +203,11 @@ export class SlipsModel extends Model {
                 await this.evacuateSlip(dockedAtSlip);
             }
             let docked = await this.editSlip(slipId, {
-                current_boat: boatId,
-                arrival_date: date,
-                boat_link: `${API_URL}/${BOATS}/${boatId}`
+                current_boat: {
+                    id: boatId,
+                    self: `${API_URL}/${BOATS}/${boatId}`
+                },
+                arrival_date: date
             });        
             
             return docked;
@@ -215,7 +222,7 @@ export class SlipsModel extends Model {
         let slip = await this.getSlipById(slipId) as ISlipResult;
         if (!isError(slip)) {
             let boat = await this.boatsModelRef.getBoatById(boatId) as IBoatResult;
-            if (!isError(boat) && (slip.current_boat == boat.id)) {
+            if (!isError(boat) && (slip.current_boat.id == boat.id)) {
                 let evacuated = await this.evacuateSlip(slipId);
                 return evacuated;
             }
@@ -241,7 +248,7 @@ export class SlipsModel extends Model {
         let allSlips = await this.getAllSlips() as ISlipResult[];
         if (!isError(allSlips)) {
             for (let slip of allSlips) {
-                if (slip.current_boat == boatId) {
+                if (slip.current_boat.id == boatId) {
                     let slipId = await this.nosqlClient.getIdFromData(slip)
                     let evacuated = await this.evacuateSlip(slipId);
                     return evacuated;
