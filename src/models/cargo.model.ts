@@ -5,6 +5,9 @@ import { NoSqlClient } from "@db/nosql.client";
 import { isError } from "util";
 import { IError, ErrorTypes } from "@lib/error.interface";
 
+// TODO: A piece of cargo can only be on one boat, but a boat can
+//  have many pieces of cargo. Below are examples of both boats and cargo.
+
 /**
  * interface used to create and insert slip objects into
  *  datastore
@@ -88,6 +91,17 @@ export class CargoModel extends Model {
      * retrieve entire collection (all cargo)
      */
     public async getAllCargo(): Promise<ICargoResult[] | IError> {
+        // TODO: You should be able to either view a single entity or 
+        //  the entire collections of entities, for example, I should 
+        //  be able to view the details of a single ship as well as 
+        //  get a list of all ships
+
+
+        // TODO: All top level lists of items must implement 
+        //    pagination. This means when viewing ALL boats, 
+        //      ALL cargo, and cargo for a given boat.
+        //    It should display 3 items per page
+        //    There should be, at a minimum, "next" links on each page
         let allCargo = await this.nosqlClient.datastoreGetCollection(CARGO);
         if (allCargo == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allCargo; 
@@ -98,6 +112,7 @@ export class CargoModel extends Model {
      */
     public async createCargo(/** TODO: pass params */): Promise<string | IError> {
         // TODO: implement createCargo
+        // TODO: All new cargo should begin unassigned to any boat
         return;
     }
 
@@ -111,12 +126,14 @@ export class CargoModel extends Model {
 
                 }
             });
+        // TODO: Deleting cargo should update the boat that was carrying it
     }
 
     /**
      * edit existing cargo
      */
     public async editCargo(cargoId: string, editCargo: Partial<ICargoPrototype>) {
+        // TODO: You should be able to modify any property except for the ID.
         if (await this.cargoExistsById(cargoId)) {
             let edited = await this.nosqlClient.datastoreEdit(CARGO, cargoId, editCargo);
             return edited;

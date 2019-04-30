@@ -15,6 +15,10 @@ import { API_URL } from "@routes/routes.main";
  * @property self   a live link to the boat object
  */
 export interface IBoatPrototype {
+    // TODO: add cargo to model
+    // TODO: Boats are aware of what cargo they hold so need 
+    //  to maintain a list of IDs (they don't need to store 
+    //  any other cargo details)
     id?: string,
     name: string,       
     type: string,       
@@ -26,6 +30,7 @@ export interface IBoatPrototype {
  * interface used to validate boat objects retrieved from the datastore
  */
 export interface IBoatResult {
+    // TODO: add cargo to model
     id: string,        
     name: string,
     type: string,
@@ -95,6 +100,8 @@ export class BoatsModel extends Model {
      * retrieve a boat object by its datastore id
      */
     public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
+        // TODO: It should be possible to view a list of all the cargo 
+        //      on a particular boat.
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return boat;
@@ -104,6 +111,12 @@ export class BoatsModel extends Model {
      * retrieve entire collection (all boats)
      */
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
+        // TODO: All top level lists of items must implement 
+        //    pagination. This means when viewing ALL boats, 
+        //      ALL cargo, and cargo for a given boat.
+        //    It should display 3 items per page
+        //    There should be, at a minimum, "next" links on each page
+        
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
@@ -150,6 +163,8 @@ export class BoatsModel extends Model {
                 if (typeof this.deleteCallback !== undefined) 
                     this.deleteCallback(boatId);
             });
+        // TODO: Deleting a boat should unload any cargo that 
+        //      was loaded on to it
     }
 
     /**
@@ -162,4 +177,6 @@ export class BoatsModel extends Model {
             return edited;
         } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }
+
+    // TODO: Cargo should be able to be assigned to boats.
 }

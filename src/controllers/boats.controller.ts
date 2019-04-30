@@ -88,5 +88,13 @@ export class BoatsController extends Controller {
 
     public removeCargoFromBoat() {
         // TODO: implement removing cargo from boat
+        // TODO: It should be possible to remove cargo 
+        //  from a ship without deleting the cargo.
     }
+
+    // TODO: If a piece of cargo is assigned to 
+    //  one boat and then is assigned to a different 
+    //  boat without first being removed it should 
+    //  throw an error 403. (This includes PUT/PATCH 
+    //  modifying cargo)
 }

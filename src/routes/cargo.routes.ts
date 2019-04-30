@@ -26,6 +26,7 @@ export class CargoRouterWrapper extends RouterWrapper {
     protected setupRoutes(): void {
         this.cargoRouter.get("", async(req: IRequest, res): Promise<void> => {
             // TODO: get handler
+            // TODO: All representations of resources must have self links.
             return;
         });
         this.cargoRouter.post("", async(req: IRequest, res): Promise<void> => {

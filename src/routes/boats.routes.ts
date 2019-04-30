@@ -27,6 +27,10 @@ export class BoatsRouterWrapper extends RouterWrapper {
 
     protected setupRoutes(): void {
         this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
+            // TODO: Please note that viewing cargo for a given 
+            //  boat is paginated, but when viewing a single ship 
+            //  the cargo list does not get paginated.
+            
             /** compute response */
             this.boatsController.handleGet(req).then((result) => {
                 if (isError(result)) {
@@ -72,5 +76,9 @@ export class BoatsRouterWrapper extends RouterWrapper {
                 }
             });
         });
+
+        // TODO: For putting cargo into boats you can use a route like 
+        //  /boats/:boat_id/cargo/:cargo_id and the same thing when 
+        //  removing cargo but with a different HTTP Verb.
     }    
 }
