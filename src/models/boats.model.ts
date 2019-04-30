@@ -49,9 +49,6 @@ export class BoatsModel extends Model {
         return this._instance;
     }
 
-    protected nosqlClient: NoSqlClient;
-    private deleteCallback: Function;
-
     private constructor() { 
         super();
         this.nosqlClient = NoSqlClient.Instance;
@@ -93,12 +90,6 @@ export class BoatsModel extends Model {
         return true;
     }
 
-    /**
-     * register a callback to be called when a boat is deleted
-     */
-    public registerDeleteCallback(_cb: Function): void {
-        this.deleteCallback = _cb;
-    }
 
     /**
      * retrieve a boat object by its datastore id
@@ -121,7 +112,8 @@ export class BoatsModel extends Model {
     /**
      * create a new boat object in the datastore
      */
-    public async createBoat(_name: string, _type: string, _length: number) {
+    public async createBoat(_name: string, _type: string, _length: number)
+        : Promise<string | IError> {
         const newData: IBoatPrototype = {
             name: _name,
             type: _type,
@@ -155,9 +147,9 @@ export class BoatsModel extends Model {
     public async deleteBoat(boatId: string): Promise<any> {
         return this.nosqlClient.datastoreDelete(BOATS, boatId)
             .then(() => {
-                if (typeof this.deleteCallback === undefined) 
+                if (typeof this.deleteCallback !== undefined) 
                     this.deleteCallback(boatId);
-            })
+            });
     }
 
     /**

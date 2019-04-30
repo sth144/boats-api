@@ -4,6 +4,7 @@ import { isError, ErrorTypes, IError } from "@lib/error.interface";
 import { RouterWrapper } from "@routes/router.wrapper";
 import { IRequest } from "@lib/request.interface";
 
+// TODO: implement routes involving cargo
 export class BoatsRouterWrapper extends RouterWrapper {
     /**
      * singleton
@@ -15,7 +16,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
     }
 
     public boatsRouter: Express.Router; 
-    private boatsController:BoatsController;
+    private boatsController: BoatsController;
 
     private constructor() {
         super();

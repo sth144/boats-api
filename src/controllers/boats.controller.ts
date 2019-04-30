@@ -53,12 +53,12 @@ export class BoatsController extends Controller {
 
             let editConfirmed = await this.boatsModel.editBoat(request.params.boat_id, edit);
             return editConfirmed;
-        } else return <IError>{ error_type: ErrorTypes.NO_ID }
+        } return <IError>{ error_type: ErrorTypes.NO_ID }
     }   
     
     /** called by router when delete request received for boats resource */
     public async handleDelete(request: IRequest): Promise<object | IError> {
-            /** confirm id in request */
+        /** confirm id in request */
         if (request.params.boat_id) {
             /** 
              * return confirmation to route handler 
@@ -67,7 +67,7 @@ export class BoatsController extends Controller {
             let deleteConfirmed 
                 = await this.boatsModel.deleteBoat(request.params.boat_id);
             return deleteConfirmed;
-        } else return <IError>{ error_type: ErrorTypes.NO_ID }
+        } return <IError>{ error_type: ErrorTypes.NO_ID }
     }
 
     /** construct an edit object to pass to model (used for patching) */
@@ -80,5 +80,13 @@ export class BoatsController extends Controller {
         if (_request.body.length)
             Object.assign(_edit, { length: _request.body.length });
         return _edit;
+    }
+
+    public putCargoOnBoat() {
+        // TODO: implement putting cargo on boat
+    }
+
+    public removeCargoFromBoat() {
+        // TODO: implement removing cargo from boat
     }
 }

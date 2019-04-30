@@ -3,6 +3,7 @@ import { BoatsRouterWrapper } from "@routes/boats.routes";
 import { SlipsRouterWrapper } from "@routes/slips.routes";
 import { IRequest } from "@lib/request.interface";
 import { ErrorTypes, IError } from "@lib/error.interface";
+import { CargoRouterWrapper } from "./cargo.routes";
 
 /**
  * set API url dynamically
@@ -23,6 +24,7 @@ SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 /** hook up the routers */
 router.use("/boats", BoatsRouterWrapper.Instance.boatsRouter);
 router.use("/slips", SlipsRouterWrapper.Instance.slipsRouter);
+router.use("/cargo", CargoRouterWrapper.Instance.cargoRouter);
 
 /**
  * generic error handler
