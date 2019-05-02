@@ -1,7 +1,6 @@
 import { NoSqlClient } from "@db/nosql.client";
 import { Model } from "@models/model";
-import { IError, ErrorTypes } from "@lib/error.interface";
-import { isError } from "util";
+import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { Query } from "@google-cloud/datastore";
 import { API_URL } from "@routes/routes.main";
 
@@ -116,7 +115,6 @@ export class BoatsModel extends Model {
         //      ALL cargo, and cargo for a given boat.
         //    It should display 3 items per page
         //    There should be, at a minimum, "next" links on each page
-        
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
@@ -165,6 +163,7 @@ export class BoatsModel extends Model {
             });
         // TODO: Deleting a boat should unload any cargo that 
         //      was loaded on to it
+        // TODO: address circular dependency. problem?
     }
 
     /**

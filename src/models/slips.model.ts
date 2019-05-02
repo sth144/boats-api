@@ -1,7 +1,6 @@
 import { NoSqlClient } from "@db/nosql.client";
 import { Model } from "@models/model";
-import { IError, ErrorTypes } from "@lib/error.interface";
-import { isError } from "util";
+import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { IBoatResult, BoatsModel, BOATS } from "@models/boats.model";
 import { API_URL } from "@routes/routes.main";
 
@@ -91,7 +90,7 @@ export class SlipsModel extends Model {
         /** only number will be supplied when creating a new slip */
         if (!("number" in obj) || !(typeof obj.number == "number")) {
             return false;
-        } else return true;
+        } return true;
     }
 
     /**
@@ -244,7 +243,7 @@ export class SlipsModel extends Model {
      * callback to be registered with boats model. Called when a boat is 
      *  deleted to evacuate the appropriate slip if necessary
      */
-    private async handleBoatDeleted(boatId: string): Promise<any | IError> {
+    private handleBoatDeleted = async (boatId: string): Promise<any | IError> => {
         let allSlips = await this.getAllSlips() as ISlipResult[];
         if (!isError(allSlips)) {
             for (let slip of allSlips) {

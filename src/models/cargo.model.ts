@@ -1,9 +1,8 @@
 import { Model } from "./model";
 import { IBoatRef } from "./slips.model";
-import { ExecSyncOptionsWithStringEncoding } from "child_process";
 import { NoSqlClient } from "@db/nosql.client";
-import { isError } from "util";
-import { IError, ErrorTypes } from "@lib/error.interface";
+import { IError, ErrorTypes, isError } from "@lib/error.interface";
+import { API_URL } from "@routes/routes.main";
 
 // TODO: A piece of cargo can only be on one boat, but a boat can
 //  have many pieces of cargo. Below are examples of both boats and cargo.
@@ -57,16 +56,19 @@ export class CargoModel extends Model {
     constructor() {
         super();
         this.nosqlClient = NoSqlClient.Instance;
+        
+        // TODO: register delete callback with boats model
+
         console.log("BoatsModel initialized");
     }
-
 
     /**
      * determine if an object conforms to ICargo interface
      */
     public confirmInterface(obj: object): boolean {
-        // TODO: confirm interface
-        return true;
+        if (!("weight" in obj) || !("content" in obj) || !("delivery_date" in obj)) {
+            return false
+        } return true;
     }
 
     /**
@@ -110,10 +112,34 @@ export class CargoModel extends Model {
     /**
      * create a new cargo object in the datastore
      */
-    public async createCargo(/** TODO: pass params */): Promise<string | IError> {
-        // TODO: implement createCargo
-        // TODO: All new cargo should begin unassigned to any boat
-        return;
+    public async createCargo(_weight: number, _content: string, _delivery_date: string)
+        : Promise<string | IError> {
+        const newData: ICargoPrototype = {
+            weight: _weight,
+            content: _content,
+            delivery_date: _delivery_date,
+            carrier: null
+        }
+
+        let newKey = await this.nosqlClient.datastoreSave(CARGO, newData);
+
+        /**
+         * create live link and update entity in datastore
+         */
+        Object.assign(newData, { id: `${newKey.id}` });
+        Object.assign(newData, { self: `${API_URL}/${CARGO}/${newKey.id}` });
+
+        const newCargo = {
+            key: newKey,
+            data: newData
+        }
+
+        /**
+         * update with live link and id
+         */
+        await this.nosqlClient.datastoreUpsert(newCargo);
+
+        return newKey;
     }
 
     /**
@@ -122,9 +148,8 @@ export class CargoModel extends Model {
     public async deleteCargo(cargoId: string): Promise<any> {
         return this.nosqlClient.datastoreDelete(CARGO, cargoId)
             .then(() => {
-                if (typeof this.deleteCallback !== undefined) {
-
-                }
+                if (typeof this.deleteCallback !== undefined) 
+                    this.deleteCallback(cargoId);
             });
         // TODO: Deleting cargo should update the boat that was carrying it
     }

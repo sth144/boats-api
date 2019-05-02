@@ -17,7 +17,7 @@ export class SlipsController extends Controller {
     }
 
     /** called by router when a get request received for slips resource */
-    public async handleGet(request: IRequest): Promise<object | IError> {
+    public handleGet = async (request: IRequest): Promise<object | IError> => {
         let result = {};
         if (!request.params.slip_id) {
             result = await this.slipsModel.getAllSlips();
@@ -28,7 +28,7 @@ export class SlipsController extends Controller {
     }
 
     /** called by router when a post request received for slips resource */
-    public async handlePost(request: IRequest): Promise<any | IError> {
+    public handlePost = async (request: IRequest): Promise<any | IError> => {
         if (!this.slipsModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE };
         } else if (!(await this.slipsModel.numberUnique(request.body.number))) {
@@ -41,7 +41,7 @@ export class SlipsController extends Controller {
     }
 
     /** called by router when a put request received for slips resource */
-    public async handlePut(request: IRequest): Promise<any | IError> {
+    public handlePut = async (request: IRequest): Promise<any | IError> => {
         /** validate request */
         if (request.params.slip_id && request.params.boat_id) {
             /** construct edit from request */
@@ -52,7 +52,7 @@ export class SlipsController extends Controller {
     }
 
     /** called by router when a patch request received for slips resource */
-    public async handlePatch(request: IRequest): Promise<any | IError> {
+    public handlePatch = async (request: IRequest): Promise<any | IError> => {
         if (request.params.slip_id) {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);
@@ -62,7 +62,7 @@ export class SlipsController extends Controller {
     }   
     
     /** called by router when a delete request received for slips resource */
-    public async handleDelete(request: IRequest): Promise<object | IError> {
+    public handleDelete = async (request: IRequest): Promise<object | IError> => {
         if (request.params.slip_id) {
             if (request.params.boat_id) {
                 let evacuated = await this.slipsModel.evacuateFromSlip(

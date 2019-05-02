@@ -19,7 +19,7 @@ export class CargoController extends Controller {
     }
 
     /** called by router when a get request is received for cargo resource */
-    public async handleGet(request: IRequest): Promise<IError | any> {
+    public handleGet = async (request: IRequest): Promise<IError | any> => {
         let result = {};
         if (!request.params.cargo_id) {
             /** all cargo selected */
@@ -32,22 +32,20 @@ export class CargoController extends Controller {
     }
 
     /** called by router when a post request received for cargo resource */
-    public async handlePost(request: IRequest): Promise<IError | any> {
+    public handlePost = async (request: IRequest): Promise<IError | any> => {
         /** enforce data model */
         if (!this.cargoModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE }
-        }   // TODO: anything need to be unique?
-        else {
+        } else {
             /** create and return key to new cargo */
             let newKey = await this.cargoModel.createCargo(
-                // TODO: call method
-            );
+                request.body.weight, request.body.content, request.body.delivery_date);
             return newKey;
         }
     }
 
     /** called by router when a patch request received for cargo resource */
-    public async handlePatch(request: IRequest): Promise<IError | any> {
+    public handlePatch = async (request: IRequest): Promise<IError | any> => {
         if (request.params.cargo_id) {
             /** construct edit from request */
             const edit = this.buildEditFromRequest(request);
@@ -59,7 +57,7 @@ export class CargoController extends Controller {
     }
 
     /** called by router when delete request received for for cargo resource */
-    public async handleDelete(request: IRequest): Promise<IError | any> {
+    public handleDelete = async (request: IRequest): Promise<IError | any> => {
         /** confirm id in request */
         if (request.params.cargo_id) {
             /**
@@ -75,8 +73,12 @@ export class CargoController extends Controller {
     /** construct edit object to pass to model (for patching) */
     private buildEditFromRequest(_request: IRequest): object {
         const _edit = {};
-        // TODO: build edit
-
+        if (_request.body.weight)
+            Object.assign(_edit, { weight: _request.body.weight });
+        if (_request.body.content)
+            Object.assign(_edit, { content: _request.body.content });
+        if (_request.body.delivery_date)
+            Object.assign(_edit, { delivery_date: _request.body.delivery_date });
         return _edit;
     }
 }

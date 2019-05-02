@@ -2,6 +2,7 @@ import * as Express from "express";
 import { RouterWrapper } from "./router.wrapper";
 import { CargoController } from "@controllers/cargo.controller";
 import { IRequest } from "@lib/request.interface";
+import { isError, IError } from "@lib/error.interface";
 
 export class CargoRouterWrapper extends RouterWrapper {
     /**
@@ -22,28 +23,32 @@ export class CargoRouterWrapper extends RouterWrapper {
         this.cargoController = new CargoController();
         this.setupRoutes();
     }
-
+    
     protected setupRoutes(): void {
-        this.cargoRouter.get("", async(req: IRequest, res): Promise<void> => {
-            // TODO: get handler
+        this.cargoRouter.get("/(:cargo_id)?", async (req: IRequest, res): Promise<void> => {
             // TODO: All representations of resources must have self links.
-            return;
+            //  The link should go to the most direct location to find that resource.
+            this.directRequest(req, res, this.cargoController.handleGet, (req, res, result) => {
+                res.status(200).json(result);
+            });
         });
-        this.cargoRouter.post("", async(req: IRequest, res): Promise<void> => {
-            // TODO: post handler
-            return;
+
+        this.cargoRouter.post("/", async (req: IRequest, res): Promise<void> => {
+            this.directRequest(req, res, this.cargoController.handlePost, (req, res, result) => {
+                res.status(201).send(`{ "id": ${result.id} }`);
+            });
         });
-        this.cargoRouter.put("", async(req: IRequest, res): Promise<void> => {
-            // TODO: put handler
-            return;
+
+        this.cargoRouter.patch("/:cargo_id", async (req: IRequest, res): Promise<void> => {
+            this.directRequest(req, res, this.cargoController.handlePatch, (req, res, result) => {
+                res.status(200).end();
+            });
         });
-        this.cargoRouter.patch("", async(req: IRequest, res): Promise<void> => {
-            // TODO: patch handler
-            return;
-        });
-        this.cargoRouter.delete("", async(req: IRequest, res): Promise<void> => {
-            // TODO: delete handler
-            return;
+
+        this.cargoRouter.delete("/:cargo_id", async (req: IRequest, res): Promise<void> => {
+            this.directRequest(req, res, this.cargoController.handleDelete, (req, res, result) => {
+                res.status(204).end();
+            });
         });
     }
 }
