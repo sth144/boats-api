@@ -161,6 +161,7 @@ export class BoatsModel extends Model {
             name: _name,
             type: _type,
             length: _length,
+            cargo: []
         }
 
         let newKey = await this.nosqlClient.datastoreSave(BOATS, newData);
@@ -212,17 +213,31 @@ export class BoatsModel extends Model {
          * check boat exists
          * check if cargo is on another boat
          */
+        console.log("PUTTTING " + boatId + " " + cargoId)
         let allBoats = await this.getAllBoats();
         if (allBoats !== undefined && !isError(allBoats)) {
             let boatExists = false, cargoOnOtherBoat = false;
             let boatToPutOn = null;
+
+            console.log("got all boats for put car")
+            console.log(allBoats);
+            console.log("those are the boats")
+
             for (let _boat of (allBoats as IBoatResult[])) {
+                console.log("cehcking " + JSON.stringify(_boat));
                 if (_boat.id == boatId) {
+                    console.log("iffing");
                     boatExists = true;
                     boatToPutOn = _boat;
                 } else {
-                    for (let _obj of _boat.cargo) 
-                        if (_obj.id == cargoId) cargoOnOtherBoat = true;
+                    console.log("elseing");
+                    if (_boat.cargo !== undefined && _boat.cargo.length > 0) {
+                        for (let _obj of _boat.cargo) {
+                            console.log(JSON.stringify(_obj));
+                            if (_obj !== null && _obj.id == cargoId) 
+                                cargoOnOtherBoat = true;
+                        }
+                    }
                     if (cargoOnOtherBoat) return <IError>{ error_type: ErrorTypes.FORBIDDEN }
                 }
             }
@@ -230,6 +245,7 @@ export class BoatsModel extends Model {
 
             let existingCargo = boatToPutOn.cargo;
             
+            console.log("editign");
             let onBoard = await this.editBoat(boatId, {
                 cargo: [
                     ...existingCargo, {
@@ -238,6 +254,7 @@ export class BoatsModel extends Model {
                     }
                 ]
             });
+            console.log("edted");
 
             /**
              * set carrier property on cargo
@@ -249,6 +266,8 @@ export class BoatsModel extends Model {
                     self: boatToPutOn.self
                 }
             })
+
+            console.log("updated cargo thing");
 
             return onBoard;
         } return <IError>{ error_type: ErrorTypes.NOT_FOUND }
@@ -280,15 +299,20 @@ export class BoatsModel extends Model {
     private handleCargoDeleted = async(cargoId: string): Promise<any | IError> => {
         let allBoats = await this.getAllBoats() as IBoatResult[];
         if (!isError(allBoats)) {
+            console.log("cargo deleted, handling");
             for (let boat of allBoats) {
-                for (let _item of boat.cargo) {
-                    if (_item.id == cargoId) {
-                        let boatCargoUpdated = boat.cargo.map(x => {
-                            if (x.id !== cargoId) return x;
-                        })
-                        let evacuated = await this.editBoat(boat.id, {
-                            cargo: boatCargoUpdated
-                        })
+                console.log("checking a boat")
+                if (boat.cargo !== undefined) {
+                    for (let _item of boat.cargo) {
+                        console.log("checking a cargo")
+                        if (_item.id == cargoId) {
+                            let boatCargoUpdated = boat.cargo.map(x => {
+                                if (x.id !== cargoId) return x;
+                            })
+                            let evacuated = await this.editBoat(boat.id, {
+                                cargo: boatCargoUpdated
+                            })
+                        }
                     }
                 }
             }

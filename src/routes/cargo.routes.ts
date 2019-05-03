@@ -32,9 +32,7 @@ export class CargoRouterWrapper extends RouterWrapper {
         });
 
         this.cargoRouter.post("/", async (req: IRequest, res): Promise<void> => {
-            console.log("try post " + JSON.stringify(req.body));
             this.directRequest(req, res, this.cargoController.handlePost, (req, res, result) => {
-                console.log("post success")
                 res.status(201).send(`{ "id": ${result.id} }`);
             });
         });

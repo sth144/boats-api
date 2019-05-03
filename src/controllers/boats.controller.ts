@@ -64,6 +64,7 @@ export class BoatsController extends Controller {
         if (request.params.boat_id && request.params.cargo_id) {
             let onBoard = await this.boatsModel.putCargoOnBoat(
                 request.params.boat_id, request.params.cargo_id);
+            console.log("returning onboard");
             return onBoard;
         } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }     
