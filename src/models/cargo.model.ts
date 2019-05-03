@@ -4,9 +4,6 @@ import { NoSqlClient } from "@db/nosql.client";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { API_URL } from "@routes/routes.main";
 
-// TODO: A piece of cargo can only be on one boat, but a boat can
-//  have many pieces of cargo. Below are examples of both boats and cargo.
-
 /**
  * interface used to create and insert slip objects into
  *  datastore
@@ -37,6 +34,11 @@ export interface ICargoResult {
     self: string
 }
 
+export interface ICargoRef {
+    id: string,
+    self: string
+}
+
 export const CARGO = "cargo";
 
 /**
@@ -56,8 +58,6 @@ export class CargoModel extends Model {
     constructor() {
         super();
         this.nosqlClient = NoSqlClient.Instance;
-        
-        // TODO: register delete callback with boats model
 
         console.log("BoatsModel initialized");
     }
@@ -66,6 +66,7 @@ export class CargoModel extends Model {
      * determine if an object conforms to ICargo interface
      */
     public confirmInterface(obj: object): boolean {
+        console.log(JSON.stringify(obj));
         if (!("weight" in obj) || !("content" in obj) || !("delivery_date" in obj)) {
             return false
         } return true;
@@ -148,20 +149,34 @@ export class CargoModel extends Model {
     public async deleteCargo(cargoId: string): Promise<any> {
         return this.nosqlClient.datastoreDelete(CARGO, cargoId)
             .then(() => {
-                if (typeof this.deleteCallback !== undefined) 
-                    this.deleteCallback(cargoId);
+                for (let deleteCallback of this.deleteCallbacks)
+                    deleteCallback(cargoId);
             });
-        // TODO: Deleting cargo should update the boat that was carrying it
     }
 
     /**
      * edit existing cargo
      */
     public async editCargo(cargoId: string, editCargo: Partial<ICargoPrototype>) {
-        // TODO: You should be able to modify any property except for the ID.
         if (await this.cargoExistsById(cargoId)) {
             let edited = await this.nosqlClient.datastoreEdit(CARGO, cargoId, editCargo);
             return edited;
         } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+    }
+
+    public handleBoatDeleted = async (boatId: string): Promise<any | IError> => {
+        let allCargo = await this.getAllCargo() as ICargoResult[];
+        if (!isError(allCargo)) {
+            for (let cargo of allCargo) {
+                if (cargo.carrier !== null && cargo.carrier.id == boatId) {
+                    let noted = await this.editCargo(cargo.id, {
+                        carrier: null
+                    })
+                }
+            }
+        } else {
+            let error = allCargo;
+            return error;
+        }
     }
 }

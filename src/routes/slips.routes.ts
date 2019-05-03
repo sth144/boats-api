@@ -41,28 +41,28 @@ export class SlipsRouterWrapper extends RouterWrapper {
 
         this.slipsRouter.put("/:slip_id/boats/:boat_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.directRequest(req, res, this.slipsController.handlePost, (req, res, result) => {
+            this.directRequest(req, res, this.slipsController.handlePut, (req, res, result) => {
                 res.status(200).end();
             });
         });
 
         this.slipsRouter.patch("/:slip_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.directRequest(req, res, this.slipsController.handlePost, (req, res, result) => {
+            this.directRequest(req, res, this.slipsController.handlePatch, (req, res, result) => {
                 res.status(200).end();
             });
         });
 
         this.slipsRouter.delete("/:slip_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
-            this.directRequest(req, res, this.slipsController.handlePost, (req, res, result) => {
+            this.directRequest(req, res, this.slipsController.handleDelete, (req, res, result) => {
                 res.status(204).end();
             });
         });
 
         this.slipsRouter.delete("/:slip_id/boats/:boat_id", async (req, res) => {
             /** undock boat from slip */
-            this.directRequest(req, res, this.slipsController.handlePost, (req, res, result) => {
+            this.directRequest(req, res, this.slipsController.handleDelete, (req, res, result) => {
                 res.status(204).end();
             });
         });

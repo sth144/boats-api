@@ -26,15 +26,15 @@ export class CargoRouterWrapper extends RouterWrapper {
     
     protected setupRoutes(): void {
         this.cargoRouter.get("/(:cargo_id)?", async (req: IRequest, res): Promise<void> => {
-            // TODO: All representations of resources must have self links.
-            //  The link should go to the most direct location to find that resource.
             this.directRequest(req, res, this.cargoController.handleGet, (req, res, result) => {
                 res.status(200).json(result);
             });
         });
 
         this.cargoRouter.post("/", async (req: IRequest, res): Promise<void> => {
+            console.log("try post " + JSON.stringify(req.body));
             this.directRequest(req, res, this.cargoController.handlePost, (req, res, result) => {
+                console.log("post success")
                 res.status(201).send(`{ "id": ${result.id} }`);
             });
         });

@@ -1,8 +1,9 @@
 import { NoSqlClient } from "@db/nosql.client";
 import { Model } from "@models/model";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
-import { Query } from "@google-cloud/datastore";
+import { Datastore, Query } from "@google-cloud/datastore";
 import { API_URL } from "@routes/routes.main";
+import { ICargoRef, CARGO, CargoModel } from "./cargo.model";
 
 /**
  * interface used for constructing and inserting boat objects into the datastore
@@ -14,14 +15,11 @@ import { API_URL } from "@routes/routes.main";
  * @property self   a live link to the boat object
  */
 export interface IBoatPrototype {
-    // TODO: add cargo to model
-    // TODO: Boats are aware of what cargo they hold so need 
-    //  to maintain a list of IDs (they don't need to store 
-    //  any other cargo details)
     id?: string,
     name: string,       
     type: string,       
     length: number     
+    cargo?: ICargoRef[],
     self?: string
 }
 
@@ -29,15 +27,21 @@ export interface IBoatPrototype {
  * interface used to validate boat objects retrieved from the datastore
  */
 export interface IBoatResult {
-    // TODO: add cargo to model
     id: string,        
     name: string,
     type: string,
     length: number,
+    cargo: ICargoRef[],
     self: string
 }
 
+export interface IBoatsPaginated {
+    boats: IBoatResult[],
+    next: string
+}
+
 export const BOATS = "boats";
+export const BOATS_CURSORS = "boats_cursors";
 
 /**
  * manages construction, editing, and deletion of boat objects in 
@@ -53,9 +57,18 @@ export class BoatsModel extends Model {
         return this._instance;
     }
 
+    protected nosqlClient: NoSqlClient;
+    private cargoModelRef: CargoModel;
+
     private constructor() { 
-        super();
+        super();        
         this.nosqlClient = NoSqlClient.Instance;
+        
+        this.cargoModelRef = CargoModel.Instance;
+        this.cargoModelRef.registerDeleteCallback(this.handleCargoDeleted);
+
+        this.registerDeleteCallback(this.cargoModelRef.handleBoatDeleted)
+
         console.log("BoatsModel initialized");
     }
 
@@ -99,11 +112,15 @@ export class BoatsModel extends Model {
      * retrieve a boat object by its datastore id
      */
     public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
-        // TODO: It should be possible to view a list of all the cargo 
-        //      on a particular boat.
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return boat;
+    }
+
+    public async getBoatCargo(boatId: string): Promise<any> {
+        // TODO: It should be possible to view a list of all the cargo 
+        //      on a particular boat.
+        //      - paginated
     }
 
     /**
@@ -118,6 +135,21 @@ export class BoatsModel extends Model {
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
+    }
+
+    public async getAllBoatsPaginated(_cursor?): Promise<any> {
+        // TODO: model responsible for pagination
+        // TODO: call from controller
+
+        let query: Query = this.nosqlClient.datastore.createQuery(BOATS).limit(3);
+        if (_cursor) {
+            query = query.start(_cursor);
+        }
+        const results = await this.nosqlClient.runQueryForModel(query);
+        const entities = results[0];
+        const info = results[1];
+        
+        return [entities, info];
     }
 
     /**
@@ -158,12 +190,9 @@ export class BoatsModel extends Model {
     public async deleteBoat(boatId: string): Promise<any> {
         return this.nosqlClient.datastoreDelete(BOATS, boatId)
             .then(() => {
-                if (typeof this.deleteCallback !== undefined) 
-                    this.deleteCallback(boatId);
+                for (let deleteCallback of this.deleteCallbacks)
+                    deleteCallback(boatId);
             });
-        // TODO: Deleting a boat should unload any cargo that 
-        //      was loaded on to it
-        // TODO: address circular dependency. problem?
     }
 
     /**
@@ -177,5 +206,96 @@ export class BoatsModel extends Model {
         } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }
 
-    // TODO: Cargo should be able to be assigned to boats.
+    public async putCargoOnBoat(boatId: string, cargoId: string)
+        : Promise<any | IError> {
+        /**
+         * check boat exists
+         * check if cargo is on another boat
+         */
+        let allBoats = await this.getAllBoats();
+        if (allBoats !== undefined && !isError(allBoats)) {
+            let boatExists = false, cargoOnOtherBoat = false;
+            let boatToPutOn = null;
+            for (let _boat of (allBoats as IBoatResult[])) {
+                if (_boat.id == boatId) {
+                    boatExists = true;
+                    boatToPutOn = _boat;
+                } else {
+                    for (let _obj of _boat.cargo) 
+                        if (_obj.id == cargoId) cargoOnOtherBoat = true;
+                    if (cargoOnOtherBoat) return <IError>{ error_type: ErrorTypes.FORBIDDEN }
+                }
+            }
+            if (!boatExists) return <IError>{ error_type: ErrorTypes.NOT_FOUND };
+
+            let existingCargo = boatToPutOn.cargo;
+            
+            let onBoard = await this.editBoat(boatId, {
+                cargo: [
+                    ...existingCargo, {
+                        id: cargoId,
+                        self: `${API_URL}/${CARGO}/${cargoId}`
+                    }
+                ]
+            });
+
+            /**
+             * set carrier property on cargo
+             */
+            const cargoUpdated = await this.cargoModelRef.editCargo(cargoId, {
+                carrier: {
+                    id: boatId,
+                    name: boatToPutOn.name,
+                    self: boatToPutOn.self
+                }
+            })
+
+            return onBoard;
+        } return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+    }
+
+    public async removeCargoFromBoat(boatId: string, cargoId: string)
+        : Promise<any | IError> {
+        let boat = await this.getBoatById(boatId) as IBoatResult;
+        if (!isError(boat)) {
+            let cargo = await this.cargoModelRef.getCargoById(cargoId);
+            let boatContainsCargo = false;
+            for (let _item of boat.cargo) {
+                if (_item.id == cargoId) boatContainsCargo = true;
+            }
+            if (!isError(cargo) && boatContainsCargo) {
+                let updatedBoatCargo = boat.cargo.map(x => {
+                    if (x.id != cargoId) return x;
+                })
+                let removed = await this.editBoat(boatId, {
+                    cargo: updatedBoatCargo
+                });
+                let cargoItemUpdated = await this.cargoModelRef.editCargo(cargoId, {
+                    carrier: null
+                })
+            }
+        } return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+    }
+
+    private handleCargoDeleted = async(cargoId: string): Promise<any | IError> => {
+        let allBoats = await this.getAllBoats() as IBoatResult[];
+        if (!isError(allBoats)) {
+            for (let boat of allBoats) {
+                for (let _item of boat.cargo) {
+                    if (_item.id == cargoId) {
+                        let boatCargoUpdated = boat.cargo.map(x => {
+                            if (x.id !== cargoId) return x;
+                        })
+                        let evacuated = await this.editBoat(boat.id, {
+                            cargo: boatCargoUpdated
+                        })
+                    }
+                }
+            }
+        } else {
+            /** pass on error */
+            let error = allBoats;
+            return allBoats;
+        }
+    }
 }

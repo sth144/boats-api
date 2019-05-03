@@ -175,9 +175,6 @@ export class SlipsModel extends Model {
     public async dockBoatAtSlip(slipId: string, boatId: string)
         : Promise<any | IError> {
         const date: string = (new Date).toString();
-
-        // TODO: update tests to account for change to data boat reference model
-
         /**
          * check if boat is docked somewhere else
          * check if slip is occupied

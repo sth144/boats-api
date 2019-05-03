@@ -4,7 +4,6 @@ import { isError, ErrorTypes, IError } from "@lib/error.interface";
 import { RouterWrapper } from "@routes/router.wrapper";
 import { IRequest } from "@lib/request.interface";
 
-// TODO: implement routes involving cargo
 export class BoatsRouterWrapper extends RouterWrapper {
     /**
      * singleton
@@ -26,7 +25,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
     }
 
     protected setupRoutes(): void {
-        this.boatsRouter.get("/(:boat_id/cargo?)?", async (req: IRequest, res): Promise<void> => {
+        this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
             // TODO: Please note that viewing cargo for a given 
             //  boat is paginated, but when viewing a single ship 
             //  the cargo list does not get paginated.
@@ -35,12 +34,12 @@ export class BoatsRouterWrapper extends RouterWrapper {
             this.directRequest(req, res, this.boatsController.handleGet, (req, res, result) => {
                 res.status(200).json(result);
             })
-            // TODO: get handler to return paginated list of a boats cargo
-        
         });
 
-        this.boatsRouter.get("/:boat_id/cargo", async (req: IRequest, res): Promise<void> => {
-            });
+        this.boatsRouter.get("/boat_id/cargo", async (req: IRequest, res): Promise<void> => {
+            // TODO: get handler to return paginated list of a boats cargo
+            return;
+        });
     
         this.boatsRouter.post("/", async (req: IRequest, res): Promise<void> => {
             /** compute response */
@@ -50,8 +49,10 @@ export class BoatsRouterWrapper extends RouterWrapper {
             
         });
 
-        this.boatsRouter.put("/:boat_id/cargo/:cargo_id", async () => {
-            // TODO: put handler to put cargo on boat
+        this.boatsRouter.put("/:boat_id/cargo/:cargo_id", async (req, res) => {
+            this.directRequest(req, res, this.boatsController.handlePut, (req, res, result) => {
+                res.status(200).end();
+            })
         });
     
         this.boatsRouter.patch("/:boat_id", async (req: IRequest, res): Promise<void> => {
@@ -70,10 +71,9 @@ export class BoatsRouterWrapper extends RouterWrapper {
 
         this.boatsRouter.delete(
             "/:boat_id/cargo/:cargo_id", async (req: IRequest, res): Promise<void> => {
-            // TODO: implement delete handler to remove cargo from boat
-        })
-        // TODO: For putting cargo into boats you can use a route like 
-        //  /boats/:boat_id/cargo/:cargo_id and the same thing when 
-        //  removing cargo but with a different HTTP Verb.
+            this.directRequest(req, res, this.boatsController.handleDelete, (req, res, result) => {
+                res.status(204).end();
+            });
+        });
     }    
 }

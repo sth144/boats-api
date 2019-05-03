@@ -5,7 +5,7 @@ import { NoSqlClient } from "@db/nosql.client";
  */
 export abstract class Model {
     protected nosqlClient: NoSqlClient;
-    protected deleteCallback: Function;
+    protected deleteCallbacks: Function[] = [];
 
     constructor() { }
 
@@ -15,6 +15,6 @@ export abstract class Model {
      * register a callback to be called when a boat is deleted
      */
     public registerDeleteCallback(_cb: Function): void {
-        this.deleteCallback = _cb;
+        this.deleteCallbacks.push(_cb);
     }
 }

@@ -34,9 +34,11 @@ export class CargoController extends Controller {
     /** called by router when a post request received for cargo resource */
     public handlePost = async (request: IRequest): Promise<IError | any> => {
         /** enforce data model */
+        console.log("handlePost")
         if (!this.cargoModel.confirmInterface(request.body)) {
             return <IError>{ error_type: ErrorTypes.INTERFACE }
         } else {
+            console.log("interface is good");
             /** create and return key to new cargo */
             let newKey = await this.cargoModel.createCargo(
                 request.body.weight, request.body.content, request.body.delivery_date);

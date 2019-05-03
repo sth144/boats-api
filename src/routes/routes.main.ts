@@ -20,6 +20,7 @@ export const router: Express.Router = Express.Router();
 /** attach error callbacks to subrouters */
 BoatsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
+CargoRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 
 /** hook up the routers */
 router.use("/boats", BoatsRouterWrapper.Instance.boatsRouter);

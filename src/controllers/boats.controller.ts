@@ -22,7 +22,7 @@ export class BoatsController extends Controller {
         let result = {};
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
-            result = await this.boatsModel.getAllBoats();
+            result = await this.boatsModel.getAllBoatsPaginated(); // this.boatsModel.getAllBoats();
         } else {
             /** handle case where one boat selected */
 
@@ -60,17 +60,31 @@ export class BoatsController extends Controller {
         } return <IError>{ error_type: ErrorTypes.NO_ID }
     }   
     
+    public handlePut = async(request: IRequest): Promise<object | IError> => {
+        if (request.params.boat_id && request.params.cargo_id) {
+            let onBoard = await this.boatsModel.putCargoOnBoat(
+                request.params.boat_id, request.params.cargo_id);
+            return onBoard;
+        } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+    }     
+
     /** called by router when delete request received for boats resource */
     public handleDelete = async (request: IRequest): Promise<object | IError> => {
         /** confirm id in request */
         if (request.params.boat_id) {
-            /** 
-             * return confirmation to route handler 
-             *  - BoatsModel handles notification of SlipsModel using callback
-             */
-            let deleteConfirmed 
-                = await this.boatsModel.deleteBoat(request.params.boat_id);
-            return deleteConfirmed;
+            if (request.params.cargo_id) {
+                /** remove cargo from boat */
+                let evacuated = await this.boatsModel.removeCargoFromBoat(
+                    request.params.boat_id, request.params.cargo_id);
+            } else {
+                /** 
+                 * return confirmation to route handler 
+                 *  - BoatsModel handles notification of SlipsModel using callback
+                 */
+                let deleteConfirmed 
+                    = await this.boatsModel.deleteBoat(request.params.boat_id);
+                return deleteConfirmed;
+            }
         } return <IError>{ error_type: ErrorTypes.NO_ID }
     }
 
@@ -85,20 +99,4 @@ export class BoatsController extends Controller {
             Object.assign(_edit, { length: _request.body.length });
         return _edit;
     }
-
-    public putCargoOnBoat() {
-        // TODO: implement putting cargo on boat
-    }
-
-    public removeCargoFromBoat() {
-        // TODO: implement removing cargo from boat
-        // TODO: It should be possible to remove cargo 
-        //  from a ship without deleting the cargo.
-    }
-
-    // TODO: If a piece of cargo is assigned to 
-    //  one boat and then is assigned to a different 
-    //  boat without first being removed it should 
-    //  throw an error 403. (This includes PUT/PATCH 
-    //  modifying cargo)
 }
