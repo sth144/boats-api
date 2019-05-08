@@ -4,6 +4,7 @@ import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { Datastore, Query } from "@google-cloud/datastore";
 import { API_URL } from "@routes/routes.main";
 import { ICargoRef, CARGO, CargoModel } from "./cargo.model";
+import { Formats } from "@lib/formats.interface";
 
 /**
  * interface used for constructing and inserting boat objects into the datastore
@@ -111,45 +112,76 @@ export class BoatsModel extends Model {
     /**
      * retrieve a boat object by its datastore id
      */
-    public async getBoatById(boatId: string): Promise<IBoatResult | IError> {
+    public async getBoatById(boatId: string, format: string = Formats.JSON): Promise<IBoatResult | IError> {
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
-        return boat;
-    }
-
-    public async getBoatCargo(boatId: string): Promise<any> {
-        // TODO: It should be possible to view a list of all the cargo 
-        //      on a particular boat.
-        //      - paginated
+        
+        switch (format) {
+            case Formats.HTML: {
+                // TODO: generate html string
+            } break;
+            default: case Formats.JSON: {
+                return boat;
+            } break;
+        }
     }
 
     /**
      * retrieve entire collection (all boats)
      */
     public async getAllBoats(): Promise<IBoatResult[] | IError> {
-        // TODO: All top level lists of items must implement 
-        //    pagination. This means when viewing ALL boats, 
-        //      ALL cargo, and cargo for a given boat.
-        //    It should display 3 items per page
-        //    There should be, at a minimum, "next" links on each page
         let allBoats = await this.nosqlClient.datastoreGetCollection(BOATS);
         if (allBoats == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allBoats;
     }
 
     public async getAllBoatsPaginated(_cursor?): Promise<any> {
-        // TODO: model responsible for pagination
-        // TODO: call from controller
-
         let query: Query = this.nosqlClient.datastore.createQuery(BOATS).limit(3);
+        if (_cursor !== undefined) {
+            query = query.start(_cursor);
+        }
+
+        const results = await this.nosqlClient.runQueryForModel(query);
+        const entities = results[0];
+        const info = results[1];
+        const next_cursor = results[1].endCursor;
+        let next_link = null;
+
+        if (info.moreResults !== this.nosqlClient.datastore.NO_MORE_RESULTS) {
+            next_link = `${API_URL}/boats?cursor=${next_cursor}`;
+        }
+
+        const page = {
+            items: entities,
+            next: next_link
+        }
+
+        return page;
+    }
+
+    public async getBoatCargo(boatId: string, _cursor?): Promise<any> {
+        let query: Query = this.nosqlClient.datastore.createQuery(CARGO)
+            .filter("carrier.id", "=", boatId)  
+            .limit(3)
         if (_cursor) {
             query = query.start(_cursor);
         }
         const results = await this.nosqlClient.runQueryForModel(query);
         const entities = results[0];
         const info = results[1];
+        const next_cursor = results[1].endCursor;
+        let next_link = null;
+
+        if (info.moreResults !== this.nosqlClient.datastore.NO_MORE_RESULTS) {
+            next_link = `${API_URL}/boats/${boatId}/cargo?cursor=${next_cursor}`
+        }
         
-        return [entities, info];
+        const page = {
+            items: entities,
+            next: next_link
+        }
+
+        return page;
     }
 
     /**
@@ -213,27 +245,18 @@ export class BoatsModel extends Model {
          * check boat exists
          * check if cargo is on another boat
          */
-        console.log("PUTTTING " + boatId + " " + cargoId)
         let allBoats = await this.getAllBoats();
         if (allBoats !== undefined && !isError(allBoats)) {
             let boatExists = false, cargoOnOtherBoat = false;
             let boatToPutOn = null;
 
-            console.log("got all boats for put car")
-            console.log(allBoats);
-            console.log("those are the boats")
-
             for (let _boat of (allBoats as IBoatResult[])) {
-                console.log("cehcking " + JSON.stringify(_boat));
                 if (_boat.id == boatId) {
-                    console.log("iffing");
                     boatExists = true;
                     boatToPutOn = _boat;
                 } else {
-                    console.log("elseing");
                     if (_boat.cargo !== undefined && _boat.cargo.length > 0) {
                         for (let _obj of _boat.cargo) {
-                            console.log(JSON.stringify(_obj));
                             if (_obj !== null && _obj.id == cargoId) 
                                 cargoOnOtherBoat = true;
                         }
@@ -245,7 +268,6 @@ export class BoatsModel extends Model {
 
             let existingCargo = boatToPutOn.cargo;
             
-            console.log("editign");
             let onBoard = await this.editBoat(boatId, {
                 cargo: [
                     ...existingCargo, {
@@ -254,7 +276,6 @@ export class BoatsModel extends Model {
                     }
                 ]
             });
-            console.log("edted");
 
             /**
              * set carrier property on cargo
@@ -265,9 +286,7 @@ export class BoatsModel extends Model {
                     name: boatToPutOn.name,
                     self: boatToPutOn.self
                 }
-            })
-
-            console.log("updated cargo thing");
+            });
 
             return onBoard;
         } return <IError>{ error_type: ErrorTypes.NOT_FOUND }
@@ -292,6 +311,8 @@ export class BoatsModel extends Model {
                 let cargoItemUpdated = await this.cargoModelRef.editCargo(cargoId, {
                     carrier: null
                 })
+                return cargoItemUpdated;
+                
             }
         } return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }
@@ -299,19 +320,16 @@ export class BoatsModel extends Model {
     private handleCargoDeleted = async(cargoId: string): Promise<any | IError> => {
         let allBoats = await this.getAllBoats() as IBoatResult[];
         if (!isError(allBoats)) {
-            console.log("cargo deleted, handling");
             for (let boat of allBoats) {
-                console.log("checking a boat")
                 if (boat.cargo !== undefined) {
                     for (let _item of boat.cargo) {
-                        console.log("checking a cargo")
                         if (_item.id == cargoId) {
                             let boatCargoUpdated = boat.cargo.map(x => {
                                 if (x.id !== cargoId) return x;
-                            })
+                            });
                             let evacuated = await this.editBoat(boat.id, {
                                 cargo: boatCargoUpdated
-                            })
+                            });
                         }
                     }
                 }

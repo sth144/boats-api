@@ -7,7 +7,6 @@ import { CargoModel } from "@models/cargo.model";
 /**
  * validates and processes input for the model
  */
-// TODO: implement pagination
 export class CargoController extends Controller {
     private cargoModel: CargoModel;
 
@@ -23,7 +22,15 @@ export class CargoController extends Controller {
         let result = {};
         if (!request.params.cargo_id) {
             /** all cargo selected */
-            result = await this.cargoModel.getAllCargo();
+            if (request.query.pag && request.query.pag == "false") {
+                result = await this.cargoModel.getAllCargo();
+            } else {
+                let _cursor = undefined;
+                if (request.query.cursor) {
+                    _cursor = request.query.cursor.replace(/ /g, "+");
+                }
+                result = await this.cargoModel.getAllCargoPaginated(_cursor);
+            }
         } else {
             /** one particular cargo item selected */
             result = await this.cargoModel.getCargoById(request.params.cargo_id);

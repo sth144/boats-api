@@ -71,6 +71,7 @@ export class NoSqlClient {
     public async datastoreEdit(_kind: string, _id: string, _patch: object)
         : Promise<any> {
         const entity = await this.datastoreGetById(_kind, _id);
+
         for (let editField of Object.keys(_patch)) {
             if (editField !== "id") {
                 Object.assign(entity, { [editField]: _patch[editField] })

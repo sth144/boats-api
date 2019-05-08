@@ -1,8 +1,10 @@
 import { Model } from "./model";
 import { IBoatRef } from "./slips.model";
 import { NoSqlClient } from "@db/nosql.client";
+import { Datastore, Query } from "@google-cloud/datastore";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { API_URL } from "@routes/routes.main";
+import { Formats } from "@lib/formats.interface";
 
 /**
  * interface used to create and insert slip objects into
@@ -66,7 +68,6 @@ export class CargoModel extends Model {
      * determine if an object conforms to ICargo interface
      */
     public confirmInterface(obj: object): boolean {
-        console.log(JSON.stringify(obj));
         if (!("weight" in obj) || !("content" in obj) || !("delivery_date" in obj)) {
             return false
         } return true;
@@ -84,30 +85,50 @@ export class CargoModel extends Model {
     /**
      * retrieve cargo by datastore id
      */
-    public async getCargoById(cargoId: string): Promise<ICargoResult | IError> {
+    public async getCargoById(cargoId: string, format: string = Formats.JSON): Promise<ICargoResult | IError> {
         let cargo = await this.nosqlClient.datastoreGetById(CARGO, cargoId);
         if (cargo == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
-        return cargo;
+        
+        switch (format) {
+            case Formats.HTML: {
+                // 
+            } break;
+            default: case Formats.JSON: {
+                return cargo;
+            } break;
+        }
     }
     
     /**
      * retrieve entire collection (all cargo)
      */
     public async getAllCargo(): Promise<ICargoResult[] | IError> {
-        // TODO: You should be able to either view a single entity or 
-        //  the entire collections of entities, for example, I should 
-        //  be able to view the details of a single ship as well as 
-        //  get a list of all ships
-
-
-        // TODO: All top level lists of items must implement 
-        //    pagination. This means when viewing ALL boats, 
-        //      ALL cargo, and cargo for a given boat.
-        //    It should display 3 items per page
-        //    There should be, at a minimum, "next" links on each page
         let allCargo = await this.nosqlClient.datastoreGetCollection(CARGO);
         if (allCargo == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return allCargo; 
+    }
+
+    public async getAllCargoPaginated(_cursor?): Promise<any> {
+        let query: Query = this.nosqlClient.datastore.createQuery(CARGO).limit(3);
+        if (_cursor) {
+            query = query.start(_cursor);
+        }
+        const results = await this.nosqlClient.runQueryForModel(query);
+        const entities = results[0];
+        const info = results[1];
+        const next_cursor = results[1].endCursor;
+        let next_link = null;
+
+        if (info.moreResults !== this.nosqlClient.datastore.NO_MORE_RESULTS) {
+            next_link = `${API_URL}/cargo?cursor=${next_cursor}`;
+        }
+
+        const page = {
+            items: entities,
+            next: next_link
+        }
+
+        return page;
     }
 
     /**

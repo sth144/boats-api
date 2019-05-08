@@ -6,7 +6,6 @@ import { IRequest } from "@lib/request.interface";
 /**
  * validates and processes input for the model
  */
-// TODO: implement pagination
 export class BoatsController extends Controller {
     private boatsModel: BoatsModel;
 
@@ -22,14 +21,26 @@ export class BoatsController extends Controller {
         let result = {};
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
-            result = await this.boatsModel.getAllBoatsPaginated(); // this.boatsModel.getAllBoats();
+            if (request.query.pag && request.query.pag == "false") {
+                result = await this.boatsModel.getAllBoats();
+            } else {
+                let _cursor = undefined
+                if (request.query.cursor) {
+                    _cursor = request.query.cursor.replace(/ /g, "+");
+                } 
+                result = await this.boatsModel.getAllBoatsPaginated(_cursor);   
+            }
         } else {
             /** handle case where one boat selected */
-
-            // TODO: handle case where boat cargo selected
-            //      - return paginated cargo
-
-            result = await this.boatsModel.getBoatById(request.params.boat_id)
+            if (request.path.search("cargo") > -1) {
+                let _cursor = null;
+                if (request.query.cursor) {
+                    _cursor = request.query.cursor.replace(/ /g, "+");
+                }
+                result = await this.boatsModel.getBoatCargo(request.params.boat_id, _cursor);
+            } else {
+                result = await this.boatsModel.getBoatById(request.params.boat_id)
+            }
         }
         return result;
     }
@@ -64,7 +75,6 @@ export class BoatsController extends Controller {
         if (request.params.boat_id && request.params.cargo_id) {
             let onBoard = await this.boatsModel.putCargoOnBoat(
                 request.params.boat_id, request.params.cargo_id);
-            console.log("returning onboard");
             return onBoard;
         } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
     }     
@@ -77,6 +87,7 @@ export class BoatsController extends Controller {
                 /** remove cargo from boat */
                 let evacuated = await this.boatsModel.removeCargoFromBoat(
                     request.params.boat_id, request.params.cargo_id);
+                return evacuated;
             } else {
                 /** 
                  * return confirmation to route handler 
