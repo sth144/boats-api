@@ -103,7 +103,7 @@ export class BoatsModel extends Model {
      * confirm that boat with id exists 
      */
     public async boatExistsById(_id: string): Promise<boolean> {
-        let result = await this.getBoatById(_id);
+        let result = await this.getBoatById(_id) as IBoatResult;
         if (isError(result)) return false;
         return true;
     }
@@ -112,13 +112,21 @@ export class BoatsModel extends Model {
     /**
      * retrieve a boat object by its datastore id
      */
-    public async getBoatById(boatId: string, format: string = Formats.JSON): Promise<IBoatResult | IError> {
+    public async getBoatById(boatId: string, format: string = Formats.JSON)
+        : Promise<IBoatResult | string | IError> {
         let boat = await this.nosqlClient.datastoreGetById(BOATS, boatId);
         if (boat == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
-        
+
         switch (format) {
             case Formats.HTML: {
-                // TODO: generate html string
+                let boat_html = "<ul>\n";
+                for (let key of Object.keys(boat)) {
+                    boat_html += "\t<li>\n";
+                    boat_html += `\t\t<span>${key}</span><span>${JSON.stringify(boat[key])}</span>\n`;
+                    boat_html += "\t</li>\n";
+                }
+                boat_html += "</ul>"
+                return boat_html;
             } break;
             default: case Formats.JSON: {
                 return boat;

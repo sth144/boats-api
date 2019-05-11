@@ -35,8 +35,12 @@ router.use("/cargo", CargoRouterWrapper.Instance.cargoRouter);
  */
 async function _errorHandler(err: IError, req: IRequest, res): Promise<void> {
     switch(err.error_type) {
+        case ErrorTypes.BAD_MEDIA_TYPE:
         case ErrorTypes.BAD_EDIT: {
             res.status(406).end();
+        } break;
+        case ErrorTypes.METHOD_NOT_ALLOWED: {
+            res.status(405).end();
         } break;
         case ErrorTypes.NOT_FOUND: {
             res.status(404).end();

@@ -74,11 +74,12 @@ export class NoSqlClient {
 
         for (let editField of Object.keys(_patch)) {
             if (editField !== "id") {
-                Object.assign(entity, { [editField]: _patch[editField] })
+                Object.assign(entity, { [editField]: _patch[editField] });
             }
         }
+        
         let editSaved = await this.datastore.upsert(entity);
-        return editSaved;
+        return entity;
     }
 
     /** delete an item from the datastore */

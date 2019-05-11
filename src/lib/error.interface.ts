@@ -12,7 +12,9 @@ export const ErrorTypes = {
     BAD_EDIT: "BAD_EDIT",
     NO_ID: "NO_ID",
     NOT_FOUND: "NOT_FOUND",
-    FORBIDDEN: "FORBIDDEN"
+    FORBIDDEN: "FORBIDDEN",
+    BAD_MEDIA_TYPE: "BAD_MEDIA_TYPE",
+    METHOD_NOT_ALLOWED: "METHOD_NOT_ALLOWED"
 }
 
 /**
@@ -20,7 +22,7 @@ export const ErrorTypes = {
  * @param _testObj the object in question
  */
 export const isError = (_testObj: object): boolean => {
-    if (_testObj == undefined) return false;
+    if (_testObj == undefined || typeof _testObj == "string") return false;
     if ("error_type" in _testObj) return true;
     return false;
 }

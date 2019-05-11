@@ -2,6 +2,7 @@ import { BoatsModel, IBoatPrototype } from "@models/boats.model";
 import { Controller } from "@controllers/controller";
 import { ErrorTypes, IError } from "@lib/error.interface";
 import { IRequest } from "@lib/request.interface";
+import { Formats } from "@lib/formats.interface";
 
 /**
  * validates and processes input for the model
@@ -19,6 +20,13 @@ export class BoatsController extends Controller {
     /** called by router when a get request is received for boats resource */
     public handleGet = async (request: IRequest): Promise<any | IError> => {
         let result = {};
+
+        if (request.headers.accept != Formats.JSON 
+            && request.headers.accept != Formats.HTML
+            && request.headers.accept != undefined) {
+            return <IError>{ error_type: ErrorTypes.BAD_MEDIA_TYPE }
+        }
+
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
             if (request.query.pag && request.query.pag == "false") {
@@ -39,7 +47,10 @@ export class BoatsController extends Controller {
                 }
                 result = await this.boatsModel.getBoatCargo(request.params.boat_id, _cursor);
             } else {
-                result = await this.boatsModel.getBoatById(request.params.boat_id)
+                let format: string;
+                if (request.headers.accept !== undefined ) format = request.headers.accept;
+                else format = Formats.JSON;
+                result = await this.boatsModel.getBoatById(request.params.boat_id, format)
             }
         }
         return result;
@@ -72,11 +83,18 @@ export class BoatsController extends Controller {
     }   
     
     public handlePut = async(request: IRequest): Promise<object | IError> => {
-        if (request.params.boat_id && request.params.cargo_id) {
+        if (!request.params.boat_id) {
+            return <IError>{ error_type: ErrorTypes.METHOD_NOT_ALLOWED }
+        } 
+        if (request.params.cargo_id) {
             let onBoard = await this.boatsModel.putCargoOnBoat(
                 request.params.boat_id, request.params.cargo_id);
             return onBoard;
-        } else return <IError>{ error_type: ErrorTypes.NOT_FOUND }
+        } else {
+            /** redirect to patch handler */
+            let patched = await this.handlePatch(request);
+            return patched;
+        }
     }     
 
     /** called by router when delete request received for boats resource */
@@ -97,7 +115,7 @@ export class BoatsController extends Controller {
                     = await this.boatsModel.deleteBoat(request.params.boat_id);
                 return deleteConfirmed;
             }
-        } return <IError>{ error_type: ErrorTypes.NO_ID }
+        } return <IError>{ error_type: ErrorTypes.METHOD_NOT_ALLOWED }
     }
 
     /** construct an edit object to pass to model (used for patching) */

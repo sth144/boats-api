@@ -7,9 +7,11 @@ export abstract class RouterWrapper {
     protected constructor() { }
 
     protected abstract setupRoutes(): void;
+
     public attachErrorCallback(_errorHandler: Function): void {
         this.handleError = _errorHandler;
     }
+    
     protected async directRequest(request: any, response: any, handler: Function, successCallback
         : Function): Promise<void> {
         handler(request).then((result) => {

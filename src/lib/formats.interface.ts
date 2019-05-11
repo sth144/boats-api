@@ -1,4 +1,4 @@
 export const Formats = {
-    JSON: "JSON",
-    HTML: "HTML"
+    JSON: "application/json",
+    HTML: "text/html"
 }
