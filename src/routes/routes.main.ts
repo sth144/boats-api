@@ -4,6 +4,7 @@ import { SlipsRouterWrapper } from "@routes/slips.routes";
 import { IRequest } from "@lib/request.interface";
 import { ErrorTypes, IError } from "@lib/error.interface";
 import { CargoRouterWrapper } from "./cargo.routes";
+import { ShipsRouterWrapper } from "./ships.routes";
 
 /**
  * set API url dynamically
@@ -18,11 +19,13 @@ export const API_URL = _URL;
 export const router: Express.Router = Express.Router();
 
 /** attach error callbacks to subrouters */
+ShipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 BoatsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 CargoRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 
 /** hook up the routers */
+router.use("/ships", ShipsRouterWrapper.Instance.shipsRouter);
 router.use("/boats", BoatsRouterWrapper.Instance.boatsRouter);
 router.use("/slips", SlipsRouterWrapper.Instance.slipsRouter);
 router.use("/cargo", CargoRouterWrapper.Instance.cargoRouter);

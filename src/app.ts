@@ -1,8 +1,4 @@
 import * as express from "express";
-import * as crypto from "crypto";
-import { NoSqlClient } from "@db/nosql.client";
-import { BoatsModel } from "@models/boats.model";
-import { SlipsModel } from "@models/slips.model";
 import { router, API_URL } from "@routes/routes.main";
 import * as bodyParser from "body-parser";
 
@@ -11,9 +7,6 @@ import * as bodyParser from "body-parser";
  */
 export class App {
     private app: express.App;
-    private nosqlClient: NoSqlClient;
-    private boatModel: BoatsModel;
-    private slipModel: SlipsModel;
     
     constructor() { 
         this.app = express();

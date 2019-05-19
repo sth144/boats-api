@@ -8,13 +8,10 @@ import { Formats } from "@lib/formats.interface";
  * validates and processes input for the model
  */
 export class BoatsController extends Controller {
-    private boatsModel: BoatsModel;
+    private boatsModel: BoatsModel = BoatsModel.Instance;
 
     constructor() { 
         super();
-
-        /** grab handle to boat model singleton */
-        this.boatsModel = BoatsModel.Instance;
     }
 
     /** called by router when a get request is received for boats resource */

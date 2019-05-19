@@ -7,13 +7,10 @@ import { IRequest } from "@lib/request.interface";
  * validates and processes input for the model
  */
 export class SlipsController extends Controller {
-    private slipsModel: SlipsModel;
+    private slipsModel: SlipsModel = SlipsModel.Instance;
 
     constructor() { 
         super();
-
-        /** grab handle to slips model singleton */
-        this.slipsModel = SlipsModel.Instance;
     }
 
     /** called by router when a get request received for slips resource */

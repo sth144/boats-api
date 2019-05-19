@@ -8,13 +8,10 @@ import { CargoModel } from "@models/cargo.model";
  * validates and processes input for the model
  */
 export class CargoController extends Controller {
-    private cargoModel: CargoModel;
+    private cargoModel: CargoModel = CargoModel.Instance;
 
     constructor() {
         super();
-
-        /** grab handle to cargo model singleton */
-        this.cargoModel = CargoModel.Instance;
     }
 
     /** called by router when a get request is received for cargo resource */
