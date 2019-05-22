@@ -1,7 +1,7 @@
 import * as Express from "express";
 import { RouterWrapper } from "@routes/router.wrapper";
 import { IRequest } from "@lib/request.interface";
-import { API_URL } from "./urls";
+import { LoginController } from "@controllers/login.controller";
 import * as request from "request";
 
 export class LoginRouterWrapper extends RouterWrapper {
@@ -12,17 +12,18 @@ export class LoginRouterWrapper extends RouterWrapper {
     }
 
     public loginRouter: Express.Router;
+    private loginController: LoginController
 
     private constructor() { 
         super();
         this.loginRouter = Express.Router();
-        // TODO: instantiate controller?
+        this.loginController = new LoginController();
         this.setupRoutes();
     }
 
     protected setupRoutes(): void {
         this.loginRouter.post("/", async(req: IRequest, res): Promise<void> => {
-            this.directRequest(req, res, this.handlePost, (req, res, postOptions) => {
+            this.directRequest(req, res, this.loginController.handlePost, (req, res, postOptions) => {
                 request.post(postOptions, (error, response, body) => {
                     if (error) {
                         res.status(500).send(error);
@@ -36,29 +37,5 @@ export class LoginRouterWrapper extends RouterWrapper {
         });   
     }
 
-    private async handlePost(req) {
-        // TODO: login route takes user name and password to retrieve jwt token
-        const username = req.body.username;
-        const password = req.body.password;
-        const options = {
-            method: "POST",
-            url: `https://dev-hdtedn05.auth0.com/oauth/token`, // TODO: oauth endpoint?
-            headers: { "content-type": "application/json" },
-            body: {
-                grant_type: "password",
-                username: username,
-                password: password,
 
-                connection: "Username-Password-Authentication",
-                /** 
-                 * not concerned with security in this example, issues using environment
-                 *  variables on gcloud
-                 */
-                client_id: process.env.CLIENT_ID,  // TODO: client id
-                client_secret: process.env.CLIENT_SECRET,
-            },
-            json: true
-        };
-        return options;
-    }
 }
