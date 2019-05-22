@@ -26,5 +26,12 @@ export class UsersRouterWrapper extends RouterWrapper {
         //       - You do not need to implement any of the parent 
         //          routes (e.g. You do not need to implement GET 
         //          /users)
+
+        this.usersRouter.get("/:user_id/ships", async (req, res) => {
+            this.directRequest(req, res, this.usersController.handleGet, (req, res, result) => {
+                // TODO: authorize in controller
+                res.status(200).send(result);
+            })
+        });
     }
 }

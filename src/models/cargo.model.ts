@@ -3,7 +3,7 @@ import { IBoatRef } from "./slips.model";
 import { NoSqlClient } from "@db/nosql.client";
 import { Datastore, Query } from "@google-cloud/datastore";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
-import { API_URL } from "@routes/routes.main";
+import { API_URL } from "@routes/urls";
 import { Formats } from "@lib/formats.interface";
 
 /**

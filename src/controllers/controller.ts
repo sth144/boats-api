@@ -4,6 +4,12 @@ export abstract class ReadOnlyController {
     abstract async handleGet(request: object): Promise<object>;
 }
 
+export abstract class WriteOnlyController {
+    constructor() { }
+
+    abstract async handlePost(request: object): Promise<object>
+}
+
 /**
  * base controller class
  */

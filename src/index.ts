@@ -1,4 +1,6 @@
 require("module-alias/register");
+require("dotenv").config();
+
 import { App } from "@base/app";
 
 /**

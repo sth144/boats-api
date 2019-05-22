@@ -10,6 +10,12 @@
 //      practice to store non-salted and hashed passwords, however for 
 //      this assignment storing plain text passwords is acceptable.
 
+import * as json2html from "json2html";
+import * as jwt from "express-jwt";
+import * as jwksRsa from "jwks-rsa";
+
+export const PROJECT_ID = "hindss-assign7";
+
 export class AuthenticationService {
     private static _instance: AuthenticationService;
     public static get Instance(): AuthenticationService {
@@ -17,5 +23,19 @@ export class AuthenticationService {
         return this._instance;
     }
 
-    private constructor() { }
+    public JwtVerifier;
+
+    private constructor() { 
+        this.JwtVerifier = jwt({
+            secret: jwksRsa.expressJwtSecret({
+                cache: true,
+                rateLimit: true,
+                jwksRequestsPerMinute: 5,
+                jwksUri: "https://dev-hdtedn05.auth0.com/.well-known/jwks.json" // TODO: URI?
+            }),
+            issuer: "https://dev-hdtedn05.auth0.com",  // TODO: issuer?
+            algorithms: ["RS256"] 
+        });
+    }
+
 }

@@ -1,24 +1,24 @@
-import * as express from "express";
-import { router, API_URL } from "@routes/routes.main";
+import * as Express from "express";
+import { router } from "@routes/routes.main";
 import * as bodyParser from "body-parser";
 
 /**
  * main API instance class
  */
 export class App {
-    private app: express.App;
+    private _app: Express.Application;
     
     constructor() { 
-        this.app = express();
-        this.app.enable('trust proxy');
+        this._app = Express();
+        this._app.enable('trust proxy');
 
-        this.app.use(bodyParser.json());
-        this.app.use("/", router);
+        this._app.use(bodyParser.json());
+        this._app.use("/", router);
     }
 
     public async start(): Promise<any> {
         const PORT = process.env.PORT || 8080;
-        this.app.listen(PORT, () => {
+        this._app.listen(PORT, () => {
             console.log(`App listening on port ${PORT}`);
             console.log(`Press Ctrl+C to quit`);
         });

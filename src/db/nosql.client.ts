@@ -1,5 +1,6 @@
 import { Datastore, Query } from "@google-cloud/datastore";
 import { IError, ErrorTypes } from "@lib/error.interface";
+import { PROJECT_ID } from "@base/authentication/authentication.service";
 
 /**
  * mediates communication with the google cloud noSQL datastore 
@@ -18,7 +19,9 @@ export class NoSqlClient {
     public datastore: Datastore;
 
     private constructor() { 
-        this.datastore = new Datastore();
+        this.datastore = new Datastore({
+            projectId: PROJECT_ID
+        });
         console.log("Datastore initialized");
     }
 

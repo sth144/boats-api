@@ -29,27 +29,25 @@ export class ShipsRouterWrapper extends RouterWrapper {
         this.shipsRouter.get("/(:ship_id)?", async (req: IRequest, res): Promise<void> => {
             /** compute response */
             this.directRequest(req, res, this.shipsController.handleGet, (req, res, result) => {
-                // TODO:
-            });
-        });
-
-        this.shipsRouter.get("/:ship_id/cargo", async (req: IRequest, res): Promise<void> => {
-            this.directRequest(req, res, this.shipsController.handleGet, (req, res, result) => {
-                // TODO:
+                // TODO: implement authorization (in controller?)
+                res.status(200).json(result);
             });
         });
     
         this.shipsRouter.post("/", async (req: IRequest, res): Promise<void> => {
             /** compute response */
             this.directRequest(req, res, this.shipsController.handlePost, (req, res, result) => {
-                // TODO:
+                // TODO: implement this route
+                res.status(201).send(`{ "id": ${result.id} }`);
             });
         });
     
-        this.shipsRouter.delete("/(:ship_id)?", async (req: IRequest, res): Promise<void> => {
+        this.shipsRouter.delete("/:ship_id", async (req: IRequest, res): Promise<void> => {
             /** compute and send response */
             this.directRequest(req, res, this.shipsController.handleDelete, (req, res, result) => {
                 // TODO: Deleting should be via the /ships/:shipid URL
+                // TODO: authorize in controller
+                res.status(204).end();
             });
         });
     }    

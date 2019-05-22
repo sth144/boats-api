@@ -35,8 +35,12 @@
     "body-parser": "^1.18.3",
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
+    "express-jwt": "^5.3.1",
+    "json2html": "0.0.8",
+    "jwks-rsa": "^1.5.0",
     "module-alias": "^2.2.0",
-    "next": "^8.1.0"
+    "next": "^8.1.0",
+    "request": "^2.88.0"
   },
   "cloud-repo-tools": {
     "test": {

@@ -5,15 +5,12 @@ import { IRequest } from "@lib/request.interface";
 import { ErrorTypes, IError } from "@lib/error.interface";
 import { CargoRouterWrapper } from "./cargo.routes";
 import { ShipsRouterWrapper } from "./ships.routes";
+import { LoginRouterWrapper } from "./login.routes";
+import { SHIPS } from "@models/ships.model";
+import { BOATS } from "@models/boats.model";
+import { SLIPS } from "@models/slips.model";
+import { CARGO } from "@models/cargo.model";
 
-/**
- * set API url dynamically
- */
-let _URL = "http://localhost:8080";
-if (process.env.GOOGLE_CLOUD_PROJECT == "hindss-assign4") {
-    _URL = "https://hindss-assign4.appspot.com"
-}
-export const API_URL = _URL;
 
 /** instantiate the router */
 export const router: Express.Router = Express.Router();
@@ -23,12 +20,14 @@ ShipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 BoatsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 CargoRouterWrapper.Instance.attachErrorCallback(_errorHandler);
+LoginRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 
 /** hook up the routers */
-router.use("/ships", ShipsRouterWrapper.Instance.shipsRouter);
-router.use("/boats", BoatsRouterWrapper.Instance.boatsRouter);
-router.use("/slips", SlipsRouterWrapper.Instance.slipsRouter);
-router.use("/cargo", CargoRouterWrapper.Instance.cargoRouter);
+router.use(`/${SHIPS}`, ShipsRouterWrapper.Instance.shipsRouter);
+router.use(`/${BOATS}`, BoatsRouterWrapper.Instance.boatsRouter);
+router.use(`/${SLIPS}`, SlipsRouterWrapper.Instance.slipsRouter);
+router.use(`/${CARGO}`, CargoRouterWrapper.Instance.cargoRouter);
+router.use(`/login`, LoginRouterWrapper.Instance.loginRouter);
 
 /**
  * generic error handler

@@ -2,7 +2,7 @@ import { NoSqlClient } from "@db/nosql.client";
 import { Model } from "@models/model";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { Datastore, Query } from "@google-cloud/datastore";
-import { API_URL } from "@routes/routes.main";
+import { API_URL } from "@routes/urls";
 import { ICargoRef, CARGO, CargoModel } from "./cargo.model";
 import { Formats } from "@lib/formats.interface";
 
@@ -96,7 +96,7 @@ export class BoatsModel extends Model {
             || !(typeof obj.type == "string")
             || !(typeof obj.length == "number")) {
             return false;
-        } else return true;
+        } return true;
     }
 
     /** 

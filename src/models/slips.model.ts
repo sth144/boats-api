@@ -2,7 +2,7 @@ import { NoSqlClient } from "@db/nosql.client";
 import { Model } from "@models/model";
 import { IError, ErrorTypes, isError } from "@lib/error.interface";
 import { IBoatResult, BoatsModel, BOATS } from "@models/boats.model";
-import { API_URL } from "@routes/routes.main";
+import { API_URL } from "@routes/urls";
 
 /**
  * interface used to create and insert slip objects into the google-cloud

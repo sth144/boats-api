@@ -9,7 +9,7 @@ export class SlipsRouterWrapper extends RouterWrapper {
      * singleton
      */
     private static _instance: SlipsRouterWrapper;
-    public static get Instance() {
+    public static get Instance(): SlipsRouterWrapper {
         if (!this._instance) this._instance = new SlipsRouterWrapper();
         return this._instance;
     }
