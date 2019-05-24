@@ -1,35 +1,27 @@
-import { Controller } from "@controllers/controller";
+import { ReadOnlyController } from "@controllers/controller";
 import { ErrorTypes, IError } from "@lib/error.interface";
 import { IRequest } from "@lib/request.interface";
 import { ShipsModel } from "@models/ships.model";
+import { AuthenticationService } from "@base/authentication/authentication.service";
 
 
-export class UsersController extends Controller {
-    private shipsModelRef: ShipsModel = ShipsModel.Instance;
+export class UsersController extends ReadOnlyController {
+    private shipsModelRef = ShipsModel.Instance;
 
     constructor() {
         super();
     }
 
     public handleGet = async (request: IRequest): Promise<any | IError> => {
-        
-        // TODO: GET /users/:userid/ships should return all ships owned
-        //      by :userid provided the JWT supplied in the matches 
-        //      :userid
-        //       - You do not need to implement any of the parent 
-        //          routes (e.g. You do not need to implement GET 
-        //          /users)
-
-        // TODO: authorize
-        let result = await this.shipsModelRef.getShipsForUser(request.params.user_id);
-        return result;
-    }
-
-    public handlePost = async (request: IRequest): Promise<any | IError> => {
-        // TODO: method to post a new user?
-    }
-
-    public handleDelete = async (request: IRequest): Promise<any | IError> => {
-        // TODO: delete user handler?
+        /**
+         * GET /users/:userid/ships returns all shiips owned by userid, provided the supplied
+         *  JWT matches userid
+         */
+        const nameShouldBe = AuthenticationService.Instance.decodeJwt(
+            request.headers.authorization).name
+        if (request.params.user_id == nameShouldBe) {
+            let result = await this.shipsModelRef.getShipsForUser(request.params.user_id);
+            return result;
+        } return <IError>{ error_type: ErrorTypes.FORBIDDEN }
     }
 }

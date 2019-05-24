@@ -1,15 +1,16 @@
-import * as Express from "express";
+import * as express from "express";
 import { router } from "@routes/routes.main";
+import { API_URL } from "@routes/urls";
 import * as bodyParser from "body-parser";
 
 /**
  * main API instance class
  */
 export class App {
-    private _app: Express.Application;
+    private _app: express.Application;
     
     constructor() { 
-        this._app = Express();
+        this._app = express();
         this._app.enable('trust proxy');
 
         this._app.use(bodyParser.json());

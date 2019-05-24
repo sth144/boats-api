@@ -10,6 +10,7 @@ import { SHIPS } from "@models/ships.model";
 import { BOATS } from "@models/boats.model";
 import { SLIPS } from "@models/slips.model";
 import { CARGO } from "@models/cargo.model";
+import { UsersRouterWrapper } from "./users.routes";
 
 
 /** instantiate the router */
@@ -21,6 +22,7 @@ BoatsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 SlipsRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 CargoRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 LoginRouterWrapper.Instance.attachErrorCallback(_errorHandler);
+UsersRouterWrapper.Instance.attachErrorCallback(_errorHandler);
 
 /** hook up the routers */
 router.use(`/${SHIPS}`, ShipsRouterWrapper.Instance.shipsRouter);
@@ -28,6 +30,7 @@ router.use(`/${BOATS}`, BoatsRouterWrapper.Instance.boatsRouter);
 router.use(`/${SLIPS}`, SlipsRouterWrapper.Instance.slipsRouter);
 router.use(`/${CARGO}`, CargoRouterWrapper.Instance.cargoRouter);
 router.use(`/login`, LoginRouterWrapper.Instance.loginRouter);
+router.use(`/users`, UsersRouterWrapper.Instance.usersRouter);
 
 /**
  * generic error handler

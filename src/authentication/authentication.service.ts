@@ -1,21 +1,14 @@
-// TODO: If you choose to implement your own JWT provider then you 
-//      will also need to implement user accounts. If you choose to 
-//      use a 3rd party provider then you do not need to implement 
-//      user accounts but you do need to detail how the authentication 
-//      flow works between your API and the 3rd party identity provider.
-//      Some examples of providers you could use are Google or Auth0.
-
-// TODO: If you do implement user accounts all that is required is 
-//      that each account store a user name and password. It is bad 
-//      practice to store non-salted and hashed passwords, however for 
-//      this assignment storing plain text passwords is acceptable.
-
 import * as json2html from "json2html";
 import * as jwt from "express-jwt";
 import * as jwksRsa from "jwks-rsa";
+import * as jwtDecode from "jwt-decode";
 
 export const PROJECT_ID = "hindss-assign7";
 
+/**
+ * Service which provides global access to a jwt verifier and jwt decoding method.
+ *  Uses Auth0 for 3rd party authorization
+ */
 export class AuthenticationService {
     private static _instance: AuthenticationService;
     public static get Instance(): AuthenticationService {
@@ -31,11 +24,14 @@ export class AuthenticationService {
                 cache: true,
                 rateLimit: true,
                 jwksRequestsPerMinute: 5,
-                jwksUri: "https://dev-hdtedn05.auth0.com/.well-known/jwks.json" // TODO: URI?
+                jwksUri: "https://dev-hdtedn05.auth0.com/.well-known/jwks.json" 
             }),
-            issuer: "https://dev-hdtedn05.auth0.com",  // TODO: issuer?
+            issuer: "https://dev-hdtedn05.auth0.com/", 
             algorithms: ["RS256"] 
         });
     }
 
+    public decodeJwt(jwt) {
+        return jwtDecode(jwt);
+    }
 }

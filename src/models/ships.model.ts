@@ -13,7 +13,7 @@ import { Formats } from "@lib/formats.interface";
  * @property type   ship type 
  * @property length ship length
  * @property owner  ship owner
- * @property self   a live link to the ship object
+ * @property self   a live link to the sh1ip object
  */
 export interface IShipPrototype {
     id?: string,
@@ -104,7 +104,6 @@ export class ShipsModel extends Model {
     public async getShipById(shipId: string, format: string = Formats.JSON)
         : Promise<IShipResult | IError> {
         let ship = await this.nosqlClient.datastoreGetById(SHIPS, shipId);
-        // TODO: implement authorization in controller
         if (ship == undefined) return <IError>{ error_type: ErrorTypes.NOT_FOUND }
         return ship;
     }
@@ -122,9 +121,7 @@ export class ShipsModel extends Model {
         let query: Query = this.nosqlClient.datastore.createQuery(SHIPS)
             .filter("owner", "=", userId);
         const results = await this.nosqlClient.runQueryForModel(query);
-        // TODO: verify this
         const entities = results[0];
-        //const info = results[1];
         return entities;
     }
 
@@ -132,9 +129,7 @@ export class ShipsModel extends Model {
      * create a new ship object in the datastore
      */
     public async createShip(_name: string, _type: string, _length: number, _owner: string)
-        : Promise<string | IError> {
-        // TODO: implement authorization in controller
-
+        : Promise<string | IError> {        
         const newData: IShipPrototype = {
             name: _name,
             type: _type,
@@ -161,8 +156,6 @@ export class ShipsModel extends Model {
      * delete a ship from datastore
      */
     public async deleteShip(shipId: string): Promise<any> {
-        // TODO: implement authorization in controller
-
         return this.nosqlClient.datastoreDelete(SHIPS, shipId)
             .then(() => {
                 for (let deleteCallback of this.deleteCallbacks)

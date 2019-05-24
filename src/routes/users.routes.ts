@@ -1,6 +1,7 @@
 import * as Express from "express";
 import { RouterWrapper } from "@routes/router.wrapper";
 import { UsersController } from "@controllers/users.controller";
+import { AuthenticationService } from "@base/authentication/authentication.service";
 
 export class UsersRouterWrapper extends RouterWrapper {
     private static _instance: UsersRouterWrapper;
@@ -9,27 +10,18 @@ export class UsersRouterWrapper extends RouterWrapper {
         return this._instance;
     }
 
-    public usersRouter: Express.Router;
-    private usersController: UsersController;
+    public usersRouter: Express.Router = Express.Router();
+    private usersController: UsersController = new UsersController();
+    private verifier = AuthenticationService.Instance.JwtVerifier;
 
     private constructor() {
         super();
-        this.usersRouter = Express.Router();
-        this.usersController = new UsersController();
         this.setupRoutes();
     }
 
     protected setupRoutes(): void {
-        // TODO: GET /users/:userid/ships should return all ships owned
-        //      by :userid provided the JWT supplied in the matches 
-        //      :userid
-        //       - You do not need to implement any of the parent 
-        //          routes (e.g. You do not need to implement GET 
-        //          /users)
-
-        this.usersRouter.get("/:user_id/ships", async (req, res) => {
+        this.usersRouter.get("/:user_id/ships", this.verifier, async (req, res) => {
             this.directRequest(req, res, this.usersController.handleGet, (req, res, result) => {
-                // TODO: authorize in controller
                 res.status(200).send(result);
             })
         });

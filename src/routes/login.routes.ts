@@ -3,6 +3,7 @@ import { RouterWrapper } from "@routes/router.wrapper";
 import { IRequest } from "@lib/request.interface";
 import { LoginController } from "@controllers/login.controller";
 import * as request from "request";
+import { AuthenticationService } from "@base/authentication/authentication.service";
 
 export class LoginRouterWrapper extends RouterWrapper {
     private static _instance: LoginRouterWrapper;
@@ -11,13 +12,12 @@ export class LoginRouterWrapper extends RouterWrapper {
         return this._instance;
     }
 
-    public loginRouter: Express.Router;
-    private loginController: LoginController
+    public loginRouter: Express.Router = Express.Router();
+    private loginController: LoginController = new LoginController();
+    private verifier = AuthenticationService.Instance.JwtVerifier;
 
     private constructor() { 
         super();
-        this.loginRouter = Express.Router();
-        this.loginController = new LoginController();
         this.setupRoutes();
     }
 
@@ -28,11 +28,10 @@ export class LoginRouterWrapper extends RouterWrapper {
                     if (error) {
                         res.status(500).send(error);
                     } else {
+                        /** send JWT back */
                         res.send(body)
-                        // TODO: send jwt back
                     }
                 });
-                // TODO: what to put here, what to delegate to previous callback?
             });
         });   
     }
