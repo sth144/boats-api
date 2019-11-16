@@ -149,7 +149,9 @@ export class BoatsModel extends Model {
             query = query.start(_cursor);
         }
 
+        console.log("running paginated query");
         const results = await this.nosqlClient.runQueryForModel(query);
+        console.log("ran paginated query");
         const entities = results[0];
         const info = results[1];
         const next_cursor = results[1].endCursor;

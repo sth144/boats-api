@@ -17,16 +17,19 @@ export class BoatsController extends Controller {
     /** called by router when a get request is received for boats resource */
     public handleGet = async (request: IRequest): Promise<any | IError> => {
         let result = {};
+        console.log("hanlding gat");
+        console.log(request.query)
 
-        if (request.headers.accept != Formats.JSON 
-            && request.headers.accept != Formats.HTML
-            && request.headers.accept != undefined) {
-            return <IError>{ error_type: ErrorTypes.BAD_MEDIA_TYPE }
-        }
+        //if (request.headers.accept !== Formats.JSON 
+        //    && request.headers.accept !== Formats.HTML
+        //    && request.headers.accept !== undefined) {
+        //    return <IError>{ error_type: ErrorTypes.BAD_MEDIA_TYPE }
+        //}
 
         if (!request.params.boat_id) {
             /** handle case where all boats selected */
             if (request.query.pag && request.query.pag == "false") {
+                console.log("getting all")
                 result = await this.boatsModel.getAllBoats();
             } else {
                 let _cursor = undefined

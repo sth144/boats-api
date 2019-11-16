@@ -1,6 +1,7 @@
 import { Datastore, Query } from "@google-cloud/datastore";
 import { IError, ErrorTypes } from "@lib/error.interface";
 import { PROJECT_ID } from "@base/authentication/authentication.service";
+import * as path from "path";
 
 /**
  * mediates communication with the google cloud noSQL datastore 
@@ -20,7 +21,8 @@ export class NoSqlClient {
 
     private constructor() { 
         this.datastore = new Datastore({
-            projectId: PROJECT_ID
+            projectId: PROJECT_ID,
+            keyFilename: "hindss-assign8-57b9d193bf8d.json"
         });
         console.log("Datastore initialized");
     }
@@ -38,7 +40,9 @@ export class NoSqlClient {
 
     /** get an entire collection (every instance of a resource) */
     public async datastoreGetCollection(_kind: string): Promise<any> {
+        console.log("getting " + _kind);
         const query: Query = this.datastore.createQuery(_kind);
+        console.log("running query");
         let queryResult: any[] = await this.datastore.runQuery(query)
         queryResult = queryResult[0];
         return queryResult;

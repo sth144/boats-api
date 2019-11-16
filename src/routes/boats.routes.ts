@@ -28,6 +28,7 @@ export class BoatsRouterWrapper extends RouterWrapper {
     protected setupRoutes(): void {
         this.boatsRouter.get("/(:boat_id)?", async (req: IRequest, res): Promise<void> => {
             /** compute response */
+            console.log("get boats")
             this.directRequest(req, res, this.boatsController.handleGet, (req, res, result) => {
                 if (req.headers.accept == Formats.JSON) {
                     res.set("Content", Formats.JSON);
